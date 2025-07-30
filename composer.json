@@ -1,0 +1,24 @@
+{
+  "name": "example/wp-modern-plugin-skeleton",
+  "description": "Modern WordPress plugin skeleton using hexagonal architecture",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "php-di/php-di": "^7.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "WP\\Skeleton\\": "src/"
+    }
+  },
+  "scripts": {
+    "generate-header": [
+      "php generate-header.php"
+    ],
+    "test": "vendor/bin/phpunit --configuration phpunit.xml"
+  }
+}
