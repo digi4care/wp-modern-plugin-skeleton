@@ -19,6 +19,9 @@
     "generate-header": [
       "php generate-header.php"
     ],
-    "test": "vendor/bin/phpunit --configuration phpunit.xml"
+    "test": "vendor/bin/phpunit --configuration phpunit.xml",
+    "init-plugin": [
+      "php bin/init-plugin.php"
+    ]
   }
 }

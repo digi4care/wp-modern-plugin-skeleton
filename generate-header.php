@@ -2,8 +2,14 @@
 
 declare(strict_types=1);
 
-$file = __DIR__ . '/plugin-skeleton.php';
 $composer = json_decode(file_get_contents(__DIR__ . '/composer.json'), true);
+$slug = basename($composer['name'] ?? 'plugin');
+
+// try default plugin-skeleton.php first for backwards compatibility
+$file = __DIR__ . '/plugin-skeleton.php';
+if (!file_exists($file)) {
+    $file = __DIR__ . '/' . $slug . '.php';
+}
 
 exec('git describe --tags --abbrev=0 2>/dev/null', $out, $exit);
 $version = $exit === 0 ? trim($out[0]) : '0.1.0';
