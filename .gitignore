@@ -52,4 +52,4 @@ composer.lock
 
 # Build artifacts
 /build/dist/
-\n.phpunit.result.cache
+.phpunit.result.cache
