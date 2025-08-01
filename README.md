@@ -5,7 +5,8 @@ This repository provides a starting point for building modern WordPress plugins 
 ## Features
 
 - Hexagonal architecture structure (`Domain`, `Application`, `Infrastructure`)
-- PHP-DI container configuration (`config/di.php`)
+- Modular dependency injection container using `ContainerProvider` and
+  `*ContainerConfigurator` classes
 - PSR-4 autoloading via Composer
 - GitHub Actions workflow for tests
 - PHPUnit test setup with code coverage
