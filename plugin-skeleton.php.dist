@@ -16,20 +16,11 @@
 
 declare(strict_types=1);
 
-use WP\Skeleton\Infrastructure\DI\ContainerProvider;
-use WP\Skeleton\Shared\Plugin\PluginContext;
+use N3XT0R\XPub\Adapter\WordpressPlugin;
 
 defined('ABSPATH') or die('No script kiddies please!');
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-ContainerProvider::setPluginContext(
-    new PluginContext(
-        __FILE__,
-        'wp-modern-plugin-skeleton',
-        'https://example.com'
-    )
-);
+WordpressPlugin::init(__FILE__);
 
-$container = ContainerProvider::getContainer();
-// $container can now be used to fetch services

@@ -12,7 +12,8 @@
   },
   "autoload": {
     "psr-4": {
-      "WP\\Skeleton\\": "src/"
+      "WP\\Skeleton\\": "src/",
+      "N3XT0R\\XPub\\Adapter\\": "src/Adapter/"
     }
   },
   "scripts": {
