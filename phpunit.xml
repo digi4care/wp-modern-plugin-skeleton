@@ -2,6 +2,14 @@
 <phpunit bootstrap="vendor/autoload.php"
          colors="true"
          stopOnFailure="false">
+    <coverage
+            includeUncoveredFiles="true"
+            pathCoverage="true"
+    >
+        <report>
+            <clover outputFile="coverage/clover.xml"/>
+        </report>
+    </coverage>
     <testsuites>
         <testsuite name="Plugin Test Suite">
             <directory>tests</directory>
