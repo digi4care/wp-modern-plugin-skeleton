@@ -53,5 +53,5 @@ composer.lock
 # Build artifacts
 /build/dist/
 .phpunit.result.cache
-/dist/
 /frontend/node_modules/
+.idea

@@ -11,6 +11,8 @@ use WP\Skeleton\Domain\DI\DomainContainerConfigurator;
 use WP\Skeleton\Shared\DI\ContainerConfiguratorInterface;
 use WP\Skeleton\Shared\Plugin\PluginContext;
 
+use function DI\value;
+
 final class ContainerProvider
 {
     private static ?Container $container = null;
@@ -61,6 +63,10 @@ final class ContainerProvider
 
     private static function configure(ContainerBuilder $builder): void
     {
+        $builder->addDefinitions([
+            PluginContext::class => value(self::$pluginContext),
+        ]);
+
         $configurators = [
             new ApplicationContainerConfigurator(),
             new DomainContainerConfigurator(),
