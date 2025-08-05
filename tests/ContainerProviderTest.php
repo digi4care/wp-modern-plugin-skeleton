@@ -11,7 +11,7 @@ class ContainerProviderTest extends TestCase
 {
     public function testReturnsSingletonContainer(): void
     {
-        ContainerProvider::setPluginContext(new PluginContext(__FILE__, 'test', 'info'));
+        ContainerProvider::setPluginContext(new PluginContext(__FILE__, 'test', 'info', 'handle'));
         $c1 = ContainerProvider::getContainer();
         $c2 = ContainerProvider::getContainer();
         $this->assertInstanceOf(Container::class, $c1);
