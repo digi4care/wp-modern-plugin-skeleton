@@ -1,0 +1,28 @@
+{
+    "apiVersion": 3,
+    "name": "wp-skeleton/greeting",
+    "version": "1.0.0",
+    "title": "Greeting",
+    "category": "wp-skeleton",
+    "icon": "smiley",
+    "description": "Display a personalized greeting message.",
+    "example": [],
+    "supports": {
+        "html": false,
+        "align": true
+    },
+    "textdomain": "wp-skeleton",
+    "editorScript": "wp-skeleton-blocks-editor",
+    "editorStyle": "wp-skeleton-blocks-editor",
+    "style": "wp-skeleton-blocks",
+    "attributes": {
+        "name": {
+            "type": "string",
+            "default": "World"
+        },
+        "className": {
+            "type": "string",
+            "default": ""
+        }
+    }
+}

@@ -18,7 +18,6 @@ namespace WP\Skeleton;
 use RuntimeException;
 use WP_Block_Type_Registry;
 use InvalidArgumentException;
-use WP\Skeleton\Shared\Plugin\PluginContext;
 
 /**
  * Manages Gutenberg blocks registration and assets
@@ -29,35 +28,81 @@ use WP\Skeleton\Shared\Plugin\PluginContext;
  */
 final class Blocks
 {
-    /**
-     * The plugin context instance
-     */
-    private PluginContext $context;
+    private string $pluginFile;
+    private string $pluginSlug;
+    private string $blocksDir;
+    private string $buildDir;
+    private bool $isInitialized = false;
 
     /**
-     * The blocks directory path
+     * Initialize blocks
      */
-    private string $blocks_dir;
-
-    /**
-     * The blocks build directory path
-     */
-    private string $build_dir;
-
-    /**
-     * Constructor
-     *
-     * @param PluginContext $context The plugin context
-     * @throws InvalidArgumentException If required directories don't exist
-     */
-    public function __construct(PluginContext $context)
+    public function init(string $pluginFile, string $pluginSlug): void
     {
-        $this->context = $context;
-        $this->blocks_dir = $context->getPluginDir('src/Blocks');
-        $this->build_dir = $context->getPluginDir('assets/blocks');
+        if ($this->isInitialized) {
+            return;
+        }
 
+        $this->pluginFile = $pluginFile;
+        $this->pluginSlug = $pluginSlug;
+        $this->blocksDir = plugin_dir_path($pluginFile) . 'src/Blocks';
+        $this->buildDir = plugin_dir_path($pluginFile) . 'assets/blocks';
+
+        // Double-check block editor availability
+        if (!function_exists('register_block_type')) {
+            error_log('WP Skeleton: Block editor not available - skipping blocks initialization');
+            return;
+        }
+
+        // Only initialize if we're in a relevant context
+        if (!$this->isRelevantContext()) {
+            return;
+        }
+
+        add_action('init', [$this, 'register_blocks']);
+        add_action('enqueue_block_editor_assets', [$this, 'enqueue_block_editor_assets']);
+        add_action('enqueue_block_assets', [$this, 'enqueue_block_assets']);
+        add_filter('block_categories_all', [$this, 'register_block_category']);
+
+        $this->isInitialized = true;
+    }
+
+    /**
+     * Check if we're in a context where blocks should be initialized
+     */
+    private function isRelevantContext(): bool
+    {
+        // Always initialize in admin (for block editor)
+        if (is_admin()) {
+            return true;
+        }
+
+        // Initialize on frontend if we're rendering blocks
+        if (has_blocks() && !wp_doing_ajax()) {
+            return true;
+        }
+
+        return apply_filters('wp_skeleton_blocks_relevant_context', false);
+    }
+
+    /**
+     * Register all blocks in the blocks directory
+     */
+    public function register_blocks(): void
+    {
         // Validate directories
         $this->validate_directories();
+
+        // Find all block directories
+        $block_dirs = glob($this->blocksDir . '/*', GLOB_ONLYDIR);
+
+        if (empty($block_dirs)) {
+            return;
+        }
+
+        foreach ($block_dirs as $block_dir) {
+            $this->register_block($block_dir);
+        }
     }
 
     /**
@@ -65,9 +110,9 @@ final class Blocks
      */
     private function validate_directories(): void
     {
-        if (!file_exists($this->blocks_dir) || !is_dir($this->blocks_dir)) {
+        if (!file_exists($this->blocksDir) || !is_dir($this->blocksDir)) {
             throw new InvalidArgumentException(
-                sprintf('Blocks directory does not exist: %s', $this->blocks_dir)
+                sprintf('Blocks directory does not exist: %s', $this->blocksDir)
             );
         }
 
@@ -82,51 +127,13 @@ final class Blocks
     }
 
     /**
-     * Initialize blocks
-     *
-     * @return void
-     */
-    public function init(): void
-    {
-        // Only initialize if block editor is available
-        if (!function_exists('register_block_type')) {
-            return;
-        }
-
-        add_action('init', [$this, 'register_blocks']);
-        add_action('enqueue_block_editor_assets', [$this, 'enqueue_block_editor_assets']);
-        add_action('enqueue_block_assets', [$this, 'enqueue_block_assets']);
-        add_filter('block_categories_all', [$this, 'register_block_category']);
-    }
-
-    /**
-     * Register all blocks in the blocks directory
-     *
-     * @return void
-     * @throws RuntimeException If block registration fails
-     */
-    public function register_blocks(): void
-    {
-        // Find all block directories
-        $block_dirs = glob($this->blocks_dir . '/*', GLOB_ONLYDIR);
-        
-        if (empty($block_dirs)) {
-            return;
-        }
-
-        foreach ($block_dirs as $block_dir) {
-            $this->register_block($block_dir);
-        }
-    }
-
-    /**
      * Register a single block
      */
     private function register_block(string $block_dir): void
     {
         $block_name = basename($block_dir);
         $block_json = $block_dir . '/block.json';
-        
+
         if (!file_exists($block_json)) {
             error_log(sprintf('Block JSON file not found: %s', $block_json));
             return;
@@ -148,107 +155,100 @@ final class Blocks
      */
     private function register_block_styles(string $block_name): void
     {
-        $style_path = $this->build_dir . '/' . $block_name . '/style.css';
-        $editor_style_path = $this->build_dir . '/' . $block_name . '/editor.css';
+        $style_path = $this->buildDir . '/' . $block_name . '/style.css';
+        $editor_style_path = $this->buildDir . '/' . $block_name . '/editor.css';
+
+        $handle = $this->pluginSlug . '-block-' . $block_name;
 
         if (file_exists($style_path)) {
             wp_register_style(
-                $this->context->getHandlePrefix('block-' . $block_name),
-                $this->context->getPluginUrl('assets/blocks/' . $block_name . '/style.css'),
+                $handle,
+                plugin_dir_url($this->pluginFile) . 'assets/blocks/' . $block_name . '/style.css',
                 [],
-                $this->context->getVersion()
+                $this->get_version()
             );
         }
 
         if (file_exists($editor_style_path)) {
             wp_register_style(
-                $this->context->getHandlePrefix('block-' . $block_name . '-editor'),
-                $this->context->getPluginUrl('assets/blocks/' . $block_name . '/editor.css'),
+                $handle . '-editor',
+                plugin_dir_url($this->pluginFile) . 'assets/blocks/' . $block_name . '/editor.css',
                 [],
-                $this->context->getVersion()
+                $this->get_version()
             );
         }
     }
 
     /**
      * Enqueue block editor assets
-     *
-     * @return void
      */
     public function enqueue_block_editor_assets(): void
     {
-        $editor_script = 'blocks-editor.js';
-        $editor_style = 'blocks-editor.css';
-        $script_asset_path = $this->build_dir . '/blocks.asset.php';
+        $script_asset_path = $this->buildDir . '/blocks.asset.php';
 
         if (!file_exists($script_asset_path)) {
-            // Don't throw error, just log and return
             error_log('Block assets not found. Please run the build process.');
             return;
         }
 
         // Register editor script
         $script_asset = require $script_asset_path;
-        
+
         wp_enqueue_script(
-            $this->context->getHandlePrefix('blocks-editor'),
-            $this->context->getPluginUrl('assets/blocks/blocks.js'),
+            $this->pluginSlug . '-blocks-editor',
+            plugin_dir_url($this->pluginFile) . 'assets/blocks/blocks.js',
             $script_asset['dependencies'] ?? ['wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-i18n'],
-            $script_asset['version'] ?? $this->context->getVersion(),
+            $script_asset['version'] ?? $this->get_version(),
             true
         );
 
         // Localize script with plugin data
         wp_localize_script(
-            $this->context->getHandlePrefix('blocks-editor'),
+            $this->pluginSlug . '-blocks-editor',
             'wpSkeletonBlocks',
             $this->get_script_data()
         );
 
         // Register editor styles
-        if (file_exists($this->build_dir . '/' . $editor_style)) {
+        $editor_style = $this->buildDir . '/blocks-editor.css';
+        if (file_exists($editor_style)) {
             wp_enqueue_style(
-                $this->context->getHandlePrefix('blocks-editor'),
-                $this->context->getPluginUrl('assets/blocks/' . $editor_style),
+                $this->pluginSlug . '-blocks-editor',
+                plugin_dir_url($this->pluginFile) . 'assets/blocks/blocks-editor.css',
                 ['wp-edit-blocks'],
-                $this->context->getVersion()
+                $this->get_version()
             );
         }
 
         // Load translations
         if (function_exists('wp_set_script_translations')) {
             wp_set_script_translations(
-                $this->context->getHandlePrefix('blocks-editor'),
+                $this->pluginSlug . '-blocks-editor',
                 'wp-skeleton',
-                $this->context->getPluginDir('languages')
+                plugin_dir_path($this->pluginFile) . 'languages'
             );
         }
     }
 
     /**
      * Enqueue frontend and editor assets
-     *
-     * @return void
      */
     public function enqueue_block_assets(): void
     {
-        $style_path = $this->build_dir . '/blocks-style.css';
+        $style_path = $this->buildDir . '/blocks-style.css';
 
         if (file_exists($style_path)) {
             wp_enqueue_style(
-                $this->context->getHandlePrefix('blocks'),
-                $this->context->getPluginUrl('assets/blocks/blocks-style.css'),
+                $this->pluginSlug . '-blocks',
+                plugin_dir_url($this->pluginFile) . 'assets/blocks/blocks-style.css',
                 [],
-                $this->context->getVersion()
+                $this->get_version()
             );
         }
     }
 
     /**
      * Register a custom block category
-     *
-     * @param array $categories Block categories
-     * @return array Filtered block categories
      */
     public function register_block_category(array $categories): array
     {
@@ -256,7 +256,7 @@ final class Blocks
             $categories,
             [
                 [
-                    'slug' => 'wp-skeleton',
+                    'slug' => $this->pluginSlug,
                     'title' => __('WP Skeleton', 'wp-skeleton'),
                     'icon' => 'wordpress',
                 ],
@@ -266,19 +266,17 @@ final class Blocks
 
     /**
      * Get script data to pass to the block editor
-     *
-     * @return array
      */
     private function get_script_data(): array
     {
         return [
             'plugin' => [
-                'name' => $this->context->getPluginSlug(),
-                'version' => $this->context->getVersion(),
-                'url' => $this->context->getPluginUrl(),
+                'name' => $this->pluginSlug,
+                'version' => $this->get_version(),
+                'url' => plugin_dir_url($this->pluginFile),
             ],
             'api' => [
-                'root' => esc_url_raw(rest_url('wp-skeleton/v1')),
+                'root' => esc_url_raw(rest_url($this->pluginSlug . '/v1')),
                 'nonce' => wp_create_nonce('wp_rest'),
             ],
             'i18n' => [
@@ -290,16 +288,26 @@ final class Blocks
     }
 
     /**
+     * Get plugin version
+     */
+    private function get_version(): string
+    {
+        if (!function_exists('get_plugin_data')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        $plugin_data = get_plugin_data($this->pluginFile, false, false);
+        return $plugin_data['Version'] ?? '1.0.0';
+    }
+
+    /**
      * Check if a block is registered
-     *
-     * @param string $block_name The block name (with or without namespace)
-     * @return bool
      */
     public function is_block_registered(string $block_name): bool
     {
         $registry = WP_Block_Type_Registry::get_instance();
-        $full_name = strpos($block_name, '/') === false 
-            ? $this->context->getPluginSlug() . '/' . $block_name 
+        $full_name = strpos($block_name, '/') === false
+            ? $this->pluginSlug . '/' . $block_name
             : $block_name;
 
         return $registry->is_registered($full_name);
@@ -307,14 +315,12 @@ final class Blocks
 
     /**
      * Get all registered blocks
-     *
-     * @return array List of registered block names
      */
     public function get_registered_blocks(): array
     {
         $registry = WP_Block_Type_Registry::get_instance();
         $blocks = $registry->get_all_registered();
-        $prefix = $this->context->getPluginSlug() . '/';
+        $prefix = $this->pluginSlug . '/';
 
         return array_filter(
             array_keys($blocks),
@@ -327,8 +333,8 @@ final class Blocks
      */
     public function create_example_block(): void
     {
-        $example_block_dir = $this->blocks_dir . '/greeting';
-        
+        $example_block_dir = $this->blocksDir . '/greeting';
+
         if (!file_exists($example_block_dir)) {
             wp_mkdir_p($example_block_dir);
         }
@@ -336,10 +342,10 @@ final class Blocks
         // Create block.json
         $block_json = [
             'apiVersion' => 3,
-            'name' => $this->context->getPluginSlug() . '/greeting',
+            'name' => $this->pluginSlug . '/greeting',
             'version' => '1.0.0',
             'title' => 'Greeting',
-            'category' => 'wp-skeleton',
+            'category' => $this->pluginSlug,
             'icon' => 'smiley',
             'description' => 'Display a personalized greeting message.',
             'example' => [],
@@ -348,9 +354,9 @@ final class Blocks
                 'align' => true,
             ],
             'textdomain' => 'wp-skeleton',
-            'editorScript' => $this->context->getHandlePrefix('blocks-editor'),
-            'editorStyle' => $this->context->getHandlePrefix('blocks-editor'),
-            'style' => $this->context->getHandlePrefix('blocks'),
+            'editorScript' => $this->pluginSlug . '-blocks-editor',
+            'editorStyle' => $this->pluginSlug . '-blocks-editor',
+            'style' => $this->pluginSlug . '-blocks',
             'attributes' => [
                 'name' => [
                     'type' => 'string',
@@ -367,5 +373,13 @@ final class Blocks
             $example_block_dir . '/block.json',
             json_encode($block_json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
         );
+    }
+
+    /**
+     * Check if blocks are initialized
+     */
+    public function isInitialized(): bool
+    {
+        return $this->isInitialized;
     }
 }

@@ -96,6 +96,34 @@ final class PluginContext
         return $this->pluginSlug;
     }
 
+    /**
+     * Get the configuration directory path
+     *
+     * @return string
+     */
+    public function getConfigDir(): string
+    {
+        return $this->getPluginDir('config/');
+    }
+
+    /**
+     * Get the cache directory path
+     *
+     * @return string
+     */
+    public function getCacheDir(): string
+    {
+        $uploadDir = wp_upload_dir();
+        $cacheDir = trailingslashit($uploadDir['basedir']) . $this->pluginSlug . '/cache/';
+        
+        // Create the directory if it doesn't exist
+        if (!file_exists($cacheDir)) {
+            wp_mkdir_p($cacheDir);
+        }
+        
+        return $cacheDir;
+    }
+
     public function getVersion(): string
     {
         return $this->version;
