@@ -62,3 +62,5 @@ composer.lock
 *.bak
 combine_sources.py
 project.llm.txt
+docs/CODEREVIEW.md
+docs/REFACTOR_V2.md
