@@ -161,7 +161,31 @@ npm run build
 - Work in `/frontend` for JavaScript/React code
 - Use `npm run dev` in the frontend directory for live development
 
-### 2. Building for Production
+### 2. Version Management
+
+#### English
+
+Manage your plugin version easily using Composer commands:
+
+```bash
+# Bump patch version (0.0.1 → 0.0.2)
+composer version:patch
+
+# Bump minor version (0.1.0 → 0.2.0)
+composer version:minor
+
+# Bump major version (1.0.0 → 2.0.0)
+composer version:major
+```
+
+These commands will:
+
+1. Update the version in `composer.json`
+2. Update the version in your plugin header
+3. Create a git commit with the version bump
+4. Create a git tag for the new version
+
+### 3. Building for Production
 
 ```bash
 # 1. Build frontend assets
@@ -173,20 +197,18 @@ cd ..
 ./build/build.sh  # Creates a clean build in dist/
 ```
 
-### 3. Creating a Release
+### 4. Creating a Release
 
-1. Update version in `composer.json`
-2. Commit your changes
-3. Create a git tag:
+1. Bump the version (see above)
+2. Push your changes and tags:
 
    ```bash
-   git tag -a v1.0.0 -m "Release 1.0.0"
-   git push origin v1.0.0
+   git push && git push --tags
    ```
 
-4. GitHub Actions will automatically create a release with the built plugin
+3. GitHub Actions will automatically create a release with the built plugin
 
-### 4. Testing the Build
+### 5. Testing the Build
 
 You can test the built plugin by copying the contents of the `dist/` directory to your WordPress plugins directory.
 
