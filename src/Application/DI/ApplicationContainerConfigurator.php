@@ -18,7 +18,9 @@ use DI\Container;
 use DI\ContainerBuilder;
 use WP\Skeleton\Application\GreetingApplication;
 use WP\Skeleton\Domain\SampleService;
+use WP\Skeleton\Domain\Configuration\CronConfiguration;
 use WP\Skeleton\Shared\DI\ContainerConfiguratorInterface;
+use WP\Skeleton\Shared\Configuration\PluginConfig;
 
 /**
  * Configures the dependency injection container with application layer services
@@ -35,11 +37,26 @@ final class ApplicationContainerConfigurator implements ContainerConfiguratorInt
      */
     public function configure(ContainerBuilder $builder): void
     {
+        /** @var array<string, mixed> $definitions */
         $definitions = [
             // Application services
             GreetingApplication::class => function (Container $container) {
                 return new GreetingApplication(
                     $container->get(SampleService::class)
+                );
+            },
+            
+            // Configuration services
+            CronConfiguration::class => \DI\autowire(),
+            
+            // Plugin configuration
+            PluginConfig::class => function (Container $container) {
+                return new PluginConfig(
+                    '1.0.0',
+                    $this->getEnvironment(),
+                    $this->isDebug(),
+                    $container->get('infrastructure.config')['plugin_dir'] ?? '',
+                    $container->get('infrastructure.config')['plugin_url'] ?? ''
                 );
             },
             

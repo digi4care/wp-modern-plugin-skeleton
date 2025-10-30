@@ -20,6 +20,8 @@ use Psr\Container\ContainerInterface;
 use WP\Skeleton\Domain\Repositories\SettingsRepositoryInterface;
 use WP\Skeleton\Infrastructure\WordPress\SettingsRepository;
 use WP\Skeleton\Infrastructure\WordPress\Api\GreetingController;
+use WP\Skeleton\Infrastructure\DI\ContainerFactory;
+use WP\Skeleton\Domain\Configuration\CronConfiguration;
 use WP\Skeleton\Shared\DI\ContainerConfiguratorInterface;
 use WP\Skeleton\Shared\Plugin\PluginContext;
 
@@ -54,9 +56,16 @@ final class InfrastructureContainerConfigurator implements ContainerConfigurator
      */
     public function configure(ContainerBuilder $builder): void
     {
+        /** @var array<string, mixed> $definitions */
         $definitions = [
             // Core Services
             PluginContext::class => $this->pluginContext,
+
+            // Factory services
+            ContainerFactory::class => autowire(),
+
+            // Configuration services
+            CronConfiguration::class => autowire(),
 
             // Repositories
             SettingsRepository::class => autowire()

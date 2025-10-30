@@ -20,6 +20,7 @@ use Psr\Container\ContainerInterface;
 use WP\Skeleton\Domain\SampleService;
 use WP\Skeleton\Domain\Repositories\SettingsRepositoryInterface;
 use WP\Skeleton\Infrastructure\WordPress\SettingsRepository;
+use WP\Skeleton\Domain\Configuration\CronConfiguration;
 use WP\Skeleton\Shared\DI\ContainerConfiguratorInterface;
 
 /**
@@ -43,9 +44,13 @@ final class DomainContainerConfigurator implements ContainerConfiguratorInterfac
      */
     public function configure(ContainerBuilder $builder): void
     {
+        /** @var array<string, mixed> $definitions */
         $definitions = [
             // Domain Services
             SampleService::class => \DI\autowire(),
+
+            // Configuration services
+            CronConfiguration::class => \DI\autowire(),
 
             // Interface to implementation bindings
             SettingsRepositoryInterface::class => \DI\get(SettingsRepository::class),

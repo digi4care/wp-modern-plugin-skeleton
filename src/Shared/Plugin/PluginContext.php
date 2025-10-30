@@ -27,26 +27,31 @@ final class PluginContext
 {
     /**
      * The plugin file path relative to the plugins directory
+     * @var non-empty-string
      */
     private string $pluginFile;
 
     /**
      * The plugin's base directory path
+     * @var non-empty-string
      */
     private string $pluginDir;
 
     /**
      * The plugin's base URL
+     * @var non-empty-string
      */
     private string $pluginUrl;
 
     /**
      * The plugin's version
+     * @var non-empty-string
      */
     private string $version;
 
     /**
      * The plugin's text domain
+     * @var non-empty-string
      */
     private string $textDomain;
 
