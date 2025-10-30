@@ -21,6 +21,7 @@ declare(strict_types=1);
 use WP\Skeleton\Adapter\WordpressPlugin;
 use WP\Skeleton\Shared\Plugin\PluginContext;
 use WP\Skeleton\Infrastructure\DI\ContainerFactory;
+use WP\Skeleton\Shared\DI\PluginServiceLocator;
 use WP\Skeleton\Shared\Exception\PluginException;
 
 // Prevent direct access
@@ -86,10 +87,13 @@ function wp_skeleton_init(): void {
             'wp-skeleton'
         );
 
-        // Create container using factory (no singleton)
+        // Create container using factory
         $container_factory = new ContainerFactory();
         $container = $container_factory->create($plugin_context);
-        
+
+        // Initialize service locator with container
+        PluginServiceLocator::setContainer($container);
+
         // Initialize main plugin via dependency injection
         /** @var WordpressPlugin $plugin */
         $plugin = $container->get(WordpressPlugin::class);
@@ -126,42 +130,42 @@ function wp_skeleton_display_error(string $message): void {
 add_action('plugins_loaded', 'wp_skeleton_init');
 
 /**
- * Example functionality - Greeting Shortcode
+ * High-performance greeting shortcode with O(1) service access
  * Usage: [skeleton_greet name="John"]
- * 
+ *
  * @param array{name?: string, class?: string} $atts
- * @param WP\Skeleton\Application\GreetingApplication|null $greetingApp For testing purposes
+ * @param string $content Shortcode content
+ * @param string $tag Shortcode tag
+ * @return string Rendered HTML
  */
-function wp_skeleton_greeting_shortcode(array $atts, ?WP\Skeleton\Application\GreetingApplication $greetingApp = null): string {
+function wp_skeleton_greeting_shortcode(array $atts, string $content = '', string $tag = ''): string {
+    static $greetingApp = null;
+
     try {
+        // Parse attributes with defaults
         $atts = shortcode_atts([
             'name' => 'World',
             'class' => 'wp-skeleton-greeting'
         ], $atts, 'skeleton_greet');
 
-        // For testing, allow dependency injection
+        // Lazy-load service with O(1) performance after first call
         if ($greetingApp === null) {
-            // In production, create a new container instance
-            $plugin_context = new PluginContext(
-                __FILE__,
-                'wp-skeleton',
-                'https://github.com/digi4care/wp-modern-plugin-skeleton',
-                'wp-skeleton'
-            );
-            $container_factory = new ContainerFactory();
-            $container = $container_factory->create($plugin_context);
-            $greetingApp = $container->get(WP\Skeleton\Application\GreetingApplication::class);
+            $greetingApp = PluginServiceLocator::get(\WP\Skeleton\Application\GreetingApplication::class);
         }
-        
+
+        // Generate greeting
         $greeting = $greetingApp->greet(sanitize_text_field($atts['name']));
-        
+
         return sprintf(
             '<div class="%s">%s</div>',
             esc_attr($atts['class']),
             esc_html($greeting)
         );
+
     } catch (Exception $e) {
+        // Graceful error handling
         if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Greeting shortcode error: ' . $e->getMessage());
             return sprintf(
                 '<div class="wp-skeleton-error">%s</div>',
                 esc_html__('Error generating greeting.', 'wp-skeleton')
@@ -171,3 +175,46 @@ function wp_skeleton_greeting_shortcode(array $atts, ?WP\Skeleton\Application\Gr
     }
 }
 add_shortcode('skeleton_greet', 'wp_skeleton_greeting_shortcode');
+
+/**
+ * Example of another high-performance shortcode using the service locator
+ */
+function wp_skeleton_advanced_greeting_shortcode(array $atts): string {
+    static $greetingApp = null;
+
+    if ($greetingApp === null) {
+        $greetingApp = PluginServiceLocator::get(\WP\Skeleton\Application\GreetingApplication::class);
+    }
+
+    $atts = shortcode_atts([
+        'names' => '',
+        'separator' => ', '
+    ], $atts, 'skeleton_greet_advanced');
+
+    if (empty($atts['names'])) {
+        return '';
+    }
+
+    $names = array_map('trim', explode(',', $atts['names']));
+    $names = array_filter($names);
+
+    if (empty($names)) {
+        return '';
+    }
+
+    try {
+        $greetings = $greetingApp->greetMultiple($names);
+        return '<div class="wp-skeleton-advanced-greeting">' .
+               implode(esc_html($atts['separator']), array_map('esc_html', $greetings)) .
+               '</div>';
+    } catch (Exception $e) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            return sprintf(
+                '<div class="wp-skeleton-error">%s</div>',
+                esc_html__('Error generating advanced greeting.', 'wp-skeleton')
+            );
+        }
+        return '';
+    }
+}
+add_shortcode('skeleton_greet_advanced', 'wp_skeleton_advanced_greeting_shortcode');
