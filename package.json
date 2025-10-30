@@ -6,9 +6,11 @@
     "start": "wp-env start",
     "stop": "wp-env stop",
     "clean": "wp-env clean all",
+    "restart": "wp-env stop && wp-env clean all && wp-env start",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "composer install --no-dev && ./build/build.sh",
-    "dev": "composer install && npm run start"
+    "dev": "composer install && npm run start",
+    "init": "composer clean && composer install && composer init-plugin && sh ./build/build.sh && npm run start"
   },
   "dependencies": {
     "@wordpress/env": "^8.0.0"

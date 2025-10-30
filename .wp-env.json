@@ -1,16 +1,15 @@
 {
-  "$schema": "https://schemas.wp.org/trunk/wp-env.schema.json",
-  "core": "WordPress/WordPress#trunk",
+  "$schema": "https://schemas.wp.org/trunk/wp-env.json",
+  "core": "WordPress/WordPress#6.8.3",
   "phpVersion": "8.2",
   "config": {
     "WP_DEBUG": true,
     "WP_DEBUG_LOG": true,
     "WP_DEBUG_DISPLAY": true,
     "SCRIPT_DEBUG": true,
-    "SAVEQUERIES": true,
     "WP_CACHE": false,
-    "WP_MEMORY_LIMIT": "256M",
-    "WP_MAX_MEMORY_LIMIT": "512M",
+    "WP_MEMORY_LIMIT": "512M",
+    "WP_MAX_MEMORY_LIMIT": "1024M",
     "WP_ENVIRONMENT_TYPE": "development",
     "WP_DISABLE_FATAL_ERROR_HANDLER": true,
     "WP_DISABLE_CRON": false,
@@ -18,27 +17,21 @@
     "DISALLOW_FILE_MODS": false,
     "AUTOMATIC_UPDATER_DISABLED": true,
     "WP_TESTS_EMAIL": "admin@example.com",
-    "WP_TESTS_TITLE": "WP Skeleton Tests",
-    "WP_PHP_BINARY": "php"
+    "WP_TESTS_TITLE": "WP Skeleton Tests"
   },
   "plugins": [
     ".",
     "https://downloads.wordpress.org/plugin/query-monitor.zip",
-    "https://downloads.wordpress.org/plugin/wordpress-seo.zip"
+    "https://downloads.wordpress.org/plugin/wordpress-seo.zip",
+    "https://downloads.wordpress.org/plugin/debug-log-config-tool.2.0.1.zip"
   ],
   "themes": [
-    "https://wordpress.org/themes/twentytwentyfour"
+    "https://downloads.wordpress.org/theme/twentytwentyfour.1.3.zip"
   ],
   "mappings": {
     "wp-content/plugins/wp-modern-plugin-skeleton": "./dist/wp-modern-plugin-skeleton",
     "wp-content/uploads": "./uploads"
   },
   "port": 8888,
-  "testsPort": 8889,
-  "phpIni": [
-    "memory_limit=512M",
-    "max_execution_time=300",
-    "error_reporting=E_ALL",
-    "display_errors=On"
-  ]
+  "testsPort": 8889
 }
