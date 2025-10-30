@@ -55,3 +55,6 @@ composer.lock
 .phpunit.result.cache
 /frontend/node_modules/
 .idea
+
+# WordPress core (only for testing/development)
+wordpress/
