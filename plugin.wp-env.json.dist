@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/wp-env.schema.json",
+  "core": "WordPress/WordPress#trunk",
+  "phpVersion": "8.2",
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "WP_DEBUG_DISPLAY": true,
+    "SCRIPT_DEBUG": true,
+    "SAVEQUERIES": true,
+    "WP_CACHE": false,
+    "WP_MEMORY_LIMIT": "256M",
+    "WP_MAX_MEMORY_LIMIT": "512M",
+    "WP_ENVIRONMENT_TYPE": "development",
+    "WP_DISABLE_FATAL_ERROR_HANDLER": true,
+    "WP_DISABLE_CRON": false,
+    "DISALLOW_FILE_EDIT": false,
+    "DISALLOW_FILE_MODS": false,
+    "AUTOMATIC_UPDATER_DISABLED": true,
+    "WP_TESTS_EMAIL": "admin@example.com",
+    "WP_TESTS_TITLE": "WP Skeleton Tests"
+  },
+  "plugins": [
+    ".",
+    "https://downloads.wordpress.org/plugin/query-monitor.zip",
+    "https://downloads.wordpress.org/plugin/wordpress-seo.zip"
+  ],
+  "themes": [
+    "https://wordpress.org/themes/twentytwentyfour"
+  ],
+  "mappings": {
+    "wp-content/plugins/{{PLUGIN_SLUG}}": "./dist/{{PLUGIN_SLUG}}",
+    "wp-content/uploads": "./uploads"
+  },
+  "port": 8888,
+  "testsPort": 8889,
+  "env": {
+    "tests": {
+      "PHP_INI_MEMORY_LIMIT": "512M",
+      "PHP_INI_MAX_EXECUTION_TIME": "300"
+    },
+    "development": {
+      "PHP_INI_MEMORY_LIMIT": "512M",
+      "PHP_INI_MAX_EXECUTION_TIME": "300",
+      "PHP_INI_ERROR_REPORTING": "E_ALL",
+      "PHP_INI_DISPLAY_ERRORS": "On"
+    }
+  }
+}

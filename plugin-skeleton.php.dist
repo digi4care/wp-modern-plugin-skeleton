@@ -91,13 +91,19 @@ function wp_skeleton_init(): void {
         $container_factory = new ContainerFactory();
         $container = $container_factory->create($plugin_context);
 
-        // Initialize service locator with container
+        // Initialize service locator with container (for legacy code)
         PluginServiceLocator::setContainer($container);
+
+        // PRELOAD CRITICAL SERVICES FOR OPTIMAL PERFORMANCE
+        PluginServiceLocator::preloadCriticalServices();
 
         // Initialize main plugin via dependency injection
         /** @var WordpressPlugin $plugin */
         $plugin = $container->get(WordpressPlugin::class);
         $plugin->init(__FILE__);
+
+        // Alternative: Direct service access without service locator
+        // $greetingApp = $container->get(\WP\Skeleton\Application\GreetingApplication::class);
 
     } catch (PluginException $e) {
         error_log('WP Modern Plugin Skeleton initialization failed: ' . $e->getMessage());
@@ -130,7 +136,7 @@ function wp_skeleton_display_error(string $message): void {
 add_action('plugins_loaded', 'wp_skeleton_init');
 
 /**
- * High-performance greeting shortcode with O(1) service access
+ * High-performance greeting shortcode with dependency injection
  * Usage: [skeleton_greet name="John"]
  *
  * @param array{name?: string, class?: string} $atts
@@ -150,6 +156,7 @@ function wp_skeleton_greeting_shortcode(array $atts, string $content = '', strin
 
         // Lazy-load service with O(1) performance after first call
         if ($greetingApp === null) {
+            // Use service locator for shortcodes (consider migrating to direct DI)
             $greetingApp = PluginServiceLocator::get(\WP\Skeleton\Application\GreetingApplication::class);
         }
 

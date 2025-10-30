@@ -60,7 +60,52 @@ if (file_exists($workflowTemplate)) {
         mkdir($workflowDir, 0777, true);
     }
     file_put_contents($workflowDir . '/ci.yml', $workflow);
-    echo "Generated workflow at .github/workflows/ci.yml\n";
+    echo "✅ Generated workflow at .github/workflows/ci.yml\n";
 } else {
-    fwrite(STDERR, "Workflow template not found.\n");
+    fwrite(STDERR, "⚠️  Workflow template not found.\n");
+}
+
+// Generate package.json from template
+$packageJsonTemplate = __DIR__ . '/../plugin-package-json.dist';
+if (file_exists($packageJsonTemplate)) {
+    $packageJson = file_get_contents($packageJsonTemplate);
+    $author = isset($composerData['authors'][0]['name']) ? $composerData['authors'][0]['name'] : '';
+    
+    $replacements = [
+        '${PLUGIN_SLUG}' => $slug,
+        '${PLUGIN_DESCRIPTION}' => $composerData['description'] ?? 'WordPress Plugin',
+        '${PLUGIN_AUTHOR}' => $author
+    ];
+    
+    $packageJson = str_replace(
+        array_keys($replacements),
+        array_values($replacements),
+        $packageJson
+    );
+    
+    file_put_contents(__DIR__ . '/../package.json', $packageJson);
+    echo "✅ Generated package.json\n";
+
+    // Generate .wp-env.json from template
+    $wpEnvTemplate = __DIR__ . '/../plugin.wp-env.json.dist';
+    if (file_exists($wpEnvTemplate)) {
+        $wpEnvContent = file_get_contents($wpEnvTemplate);
+        
+        // Replace placeholders
+        $wpEnvContent = str_replace(
+            '{{PLUGIN_SLUG}}',
+            $slug,
+            $wpEnvContent
+        );
+        
+        file_put_contents(__DIR__ . '/../.wp-env.json', $wpEnvContent);
+        echo "✅ Generated .wp-env.json from template\n";
+    }
+    
+    echo "\n🎉 Setup complete! You can now run:\n";
+    echo "- `npm install` to install Node.js dependencies\n";
+    echo "- `npm run dev` to start the development environment\n";
+    echo "- `npm run build` to build for production\n";
+} else {
+    fwrite(STDERR, "⚠️  plugin-package-json.dist template not found.\n");
 }

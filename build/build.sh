@@ -48,6 +48,16 @@ if [ -f "$MAIN_PLUGIN_FILE" ]; then
     cp "$MAIN_PLUGIN_FILE" "$PLUGIN_DIR/"
 else
     echo "❌ Error: Main plugin file '$MAIN_PLUGIN_FILE' not found!"
+fi
+
+# Create bin directory in the plugin
+mkdir -p "$PLUGIN_DIR/bin"
+
+# Copy benchmark script if it exists
+if [ -f "bin/benchmark.php" ]; then
+    cp "bin/benchmark.php" "$PLUGIN_DIR/bin/"
+    chmod +x "$PLUGIN_DIR/bin/benchmark.php"
+    echo "✅ Copied benchmark.php to bin/"
     exit 1
 fi
 
