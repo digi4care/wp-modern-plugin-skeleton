@@ -2,10 +2,10 @@
 
 /**
  * WordPress Plugin Bootstrap
- * 
+ *
  * This class serves as the main entry point for the WordPress plugin.
  * It handles plugin initialization, dependency injection, and lifecycle management.
- * 
+ *
  * @package WP\Skeleton\Adapter
  * @since 1.0.0
  */
@@ -26,66 +26,65 @@ final class WordpressPlugin
 {
     /** @var non-empty-string The plugin version */
     public const VERSION = '1.0.0';
-    
+
     /** @var non-empty-string The minimum required PHP version */
     public const MINIMUM_PHP_VERSION = '8.2';
-    
+
     /** @var non-empty-string The minimum required WordPress version */
     public const MINIMUM_WP_VERSION = '6.0';
-    
+
     /** @var non-empty-string The plugin file path */
     private string $plugin_file;
 
     public function __construct(
         private WordpressCron $cron,
         private PluginContext $context,
-        private CronConfiguration $cronConfig,
         private ?Blocks $blocks = null
     ) {}
 
     /**
      * Initialize the plugin
-     * 
+     *
      * @param non-empty-string $plugin_file The main plugin file path
      * @return void
-     * 
+     *
      * @throws ConfigurationException If initialization fails
      */
     public function init(string $plugin_file): void
     {
         try {
             $this->plugin_file = $plugin_file;
-            
+
             // Register activation and deactivation hooks
             register_activation_hook($plugin_file, [$this, 'activate']);
             register_deactivation_hook($plugin_file, [$this, 'deactivate']);
-            
+
             // Check requirements
             $this->check_requirements();
-            
+
             // Initialize plugin components
             $this->initialize_components();
-            
+
             // Hook into WordPress
             add_action('plugins_loaded', [$this, 'on_plugins_loaded']);
-            
+
         } catch (\Throwable $e) {
             $this->handle_initialization_error($e, $plugin_file);
         }
     }
-    
+
     /**
      * Handle initialization errors gracefully
      */
     private function handle_initialization_error(\Throwable $e, string $plugin_file): void {
         $error_message = sprintf('Failed to initialize plugin: %s', $e->getMessage());
-        
+
         error_log($error_message);
-        
+
         if (defined('WP_DEBUG') && WP_DEBUG) {
             throw new ConfigurationException($error_message, 0, $e);
         }
-        
+
         // Deactivate the plugin if initialization fails
         if (function_exists('deactivate_plugins')) {
             deactivate_plugins(plugin_basename($plugin_file));
@@ -99,10 +98,10 @@ final class WordpressPlugin
             );
         }
     }
-    
+
     /**
      * Check system requirements
-     * 
+     *
      * @return void
      * @throws ConfigurationException If requirements are not met
      */
@@ -118,7 +117,7 @@ final class WordpressPlugin
                 )
             );
         }
-        
+
         // Check WordPress version
         if (function_exists('get_bloginfo')) {
             $wp_version = get_bloginfo('version');
@@ -133,17 +132,17 @@ final class WordpressPlugin
             }
         }
     }
-    
+
     /**
      * Initialize plugin components
-     * 
+     *
      * @return void
      */
     private function initialize_components(): void
     {
         // Initialize cron jobs
         $this->cron->init();
-        
+
         // Initialize blocks if available
         if ($this->blocks !== null && function_exists('register_block_type')) {
             try {
@@ -153,53 +152,53 @@ final class WordpressPlugin
             }
         }
     }
-    
+
     /**
      * Plugin activation hook
-     * 
+     *
      * @return void
      */
     public function activate(): void
     {
         // Schedule cron jobs
         $this->cron->schedule();
-        
+
         // Set default options
         $default_options = [
             'wp_skeleton_version' => self::VERSION,
             'wp_skeleton_installed' => current_time('mysql'),
         ];
-        
+
         foreach ($default_options as $option => $value) {
             if (get_option($option) === false) {
                 add_option($option, $value);
             }
         }
-        
+
         // Flush rewrite rules on next request
         update_option('wp_skeleton_flush_rewrite_rules', '1');
     }
-    
+
     /**
      * Plugin deactivation hook
-     * 
+     *
      * @return void
      */
     public function deactivate(): void
     {
         // Unschedule cron jobs
         $this->cron->unschedule();
-        
+
         // Clean up temporary data
         delete_option('wp_skeleton_flush_rewrite_rules');
-        
+
         // Flush rewrite rules
         flush_rewrite_rules();
     }
-    
+
     /**
      * Fires once activated plugins have loaded
-     * 
+     *
      * @return void
      */
     public function on_plugins_loaded(): void
@@ -210,19 +209,27 @@ final class WordpressPlugin
             false,
             dirname(plugin_basename($this->plugin_file)) . '/languages/'
         );
-        
+
         // Initialize any components that need to run after plugins_loaded
         $this->after_plugins_loaded();
     }
-    
+
     /**
      * Initialize components that need to run after plugins_loaded
-     * 
+     *
      * @return void
      */
     private function after_plugins_loaded(): void
     {
         // Add initialization that needs to happen after plugins_loaded
         do_action('wp_skeleton_loaded');
+    }
+
+    /**
+     * Get plugin context
+     */
+    public function getContext(): PluginContext
+    {
+        return $this->context;
     }
 }

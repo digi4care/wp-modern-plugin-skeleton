@@ -6,25 +6,38 @@ namespace WP\Skeleton\Infrastructure\WordPress\React\Components;
 
 use WP\Skeleton\Infrastructure\WordPress\React\ReactAppLoader;
 use WP\Skeleton\Shared\Plugin\PluginContext;
+use WP_Error;
 
 final class XPubSettingsAppLoader
 {
     public function __construct(
-        private ReactAppLoader $appLoader,
-        private PluginContext $pluginContext,
+        private readonly ReactAppLoader $appLoader,
+        private readonly PluginContext $pluginContext,
     ) {
     }
 
-    public function register(): void
+    /**
+     * Register and load the settings app
+     *
+     * @return true|WP_Error True on success, WP_Error on failure
+     */
+    public function register(): bool|WP_Error
     {
         $data = [
-            'nonce' => '',
-            'actionUrl' => '',
-            'restUrl' => '',
-            'restNonce' => '',
+            'nonce' => wp_create_nonce('wp_rest'),
+            'actionUrl' => admin_url('admin-ajax.php'),
+            'restUrl' => rest_url('wp-skeleton/v1'),
+            'restNonce' => wp_create_nonce('wp_rest'),
         ];
 
-        // Skeleton: enqueue scripts and inject settings data for the React app.
-        $this->appLoader->load('main.jsx', 'xpubSettings', $data);
+        return $this->appLoader->load('main.jsx', 'xpubSettings', $data);
+    }
+
+    /**
+     * Get plugin context for asset URLs
+     */
+    public function getPluginContext(): PluginContext
+    {
+        return $this->pluginContext;
     }
 }

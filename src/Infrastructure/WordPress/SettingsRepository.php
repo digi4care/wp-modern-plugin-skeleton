@@ -8,10 +8,10 @@ use InvalidArgumentException;
 
 /**
  * Handles WordPress options with type safety and validation
- * 
+ *
  * This class provides a type-safe wrapper around WordPress options API,
  * ensuring consistent behavior and proper error handling.
- * 
+ *
  * @see https://developer.wordpress.org/plugins/settings/settings-api/
  * @since 1.0.0
  */
@@ -23,16 +23,31 @@ final class SettingsRepository
     private const UNSET_VALUE = '__UNSET_VALUE__';
 
     /**
+     * Cache group for object caching
+     */
+    private const CACHE_GROUP = 'wp_skeleton_settings';
+
+    /**
+     * Cache expiration in seconds (1 hour)
+     */
+    private const CACHE_EXPIRATION = 3600;
+
+    /**
+     * Memory cache for current request
+     */
+    private static array $cache = [];
+
+    /**
      * Retrieves an option value from the WordPress database
-     * 
+     *
      * @template T
      * @param non-empty-string $key Option name. Must not be empty.
      * @param T $default Default value to return if the option doesn't exist.
-     * 
+     *
      * @return T The option value if it exists, otherwise the default value.
-     * 
+     *
      * @throws InvalidArgumentException If the provided key is empty.
-     * 
+     *
      * @example
      * // Get an option with a default value
      * $value = $repository->get('my_option', 'default_value');
@@ -42,20 +57,36 @@ final class SettingsRepository
         if (empty($key)) {
             throw new InvalidArgumentException('Option key cannot be empty');
         }
-        
+
+        // Memory cache first (O(1) performance)
+        if (array_key_exists($key, self::$cache)) {
+            return self::$cache[$key];
+        }
+
+        // Object cache second
+        $cached = wp_cache_get($key, self::CACHE_GROUP);
+        if ($cached !== false) {
+            self::$cache[$key] = $cached;
+            return $cached;
+        }
+
         $value = get_option($key, self::UNSET_VALUE);
-        
+
         if ($value === self::UNSET_VALUE) {
             return $default;
         }
-        
+
+        // Cache the result for future requests
+        self::$cache[$key] = $value;
+        wp_cache_set($key, $value, self::CACHE_GROUP, self::CACHE_EXPIRATION);
+
         /** @var T $value */
         return $value;
     }
 
     /**
      * Get a string option with validation
-     * 
+     *
      * @param non-empty-string $key
      * @param string $default
      * @return string
@@ -68,7 +99,7 @@ final class SettingsRepository
 
     /**
      * Get an integer option with validation
-     * 
+     *
      * @param non-empty-string $key
      * @param int $default
      * @return int
@@ -81,7 +112,7 @@ final class SettingsRepository
 
     /**
      * Get a boolean option with validation
-     * 
+     *
      * @param non-empty-string $key
      * @param bool $default
      * @return bool
@@ -94,7 +125,7 @@ final class SettingsRepository
 
     /**
      * Get an array option with validation
-     * 
+     *
      * @param non-empty-string $key
      * @param array<string, mixed> $default
      * @return array<string, mixed>
@@ -107,15 +138,15 @@ final class SettingsRepository
 
     /**
      * Updates an option value in the WordPress database
-     * 
+     *
      * @param non-empty-string $key The option name. Must not be empty.
      * @param mixed $value The new option value.
      * @param string $autoload Whether to autoload the option ('yes' or 'no')
-     * 
-     * @return bool 
+     *
+     * @return bool
      *   - true if the value was updated successfully
      *   - false if the update failed or the value was the same
-     * 
+     *
      * @throws InvalidArgumentException If the provided key is empty or autoload is invalid.
      */
     public function update(string $key, mixed $value, string $autoload = 'yes'): bool
@@ -123,20 +154,24 @@ final class SettingsRepository
         if (empty($key)) {
             throw new InvalidArgumentException('Option key cannot be empty');
         }
-        
+
         if (!in_array($autoload, ['yes', 'no'], true)) {
             throw new InvalidArgumentException('Autoload must be either "yes" or "no"');
         }
-        
+
+        // Invalidate cache
+        unset(self::$cache[$key]);
+        wp_cache_delete($key, self::CACHE_GROUP);
+
         return update_option($key, $value, $autoload === 'yes');
     }
 
     /**
      * Deletes an option from the WordPress database
-     * 
+     *
      * @param non-empty-string $key The option name. Must not be empty.
      * @return bool True if the option was deleted, false otherwise.
-     * 
+     *
      * @throws InvalidArgumentException If the provided key is empty.
      */
     public function delete(string $key): bool
@@ -144,16 +179,20 @@ final class SettingsRepository
         if (empty($key)) {
             throw new InvalidArgumentException('Option key cannot be empty');
         }
-        
+
+        // Invalidate cache
+        unset(self::$cache[$key]);
+        wp_cache_delete($key, self::CACHE_GROUP);
+
         return delete_option($key);
     }
 
     /**
      * Checks if an option exists
-     * 
+     *
      * @param non-empty-string $key The option name. Must not be empty.
      * @return bool True if the option exists, false otherwise.
-     * 
+     *
      * @throws InvalidArgumentException If the provided key is empty.
      */
     public function has(string $key): bool
@@ -161,32 +200,32 @@ final class SettingsRepository
         if (empty($key)) {
             throw new InvalidArgumentException('Option key cannot be empty');
         }
-        
+
         return get_option($key, self::UNSET_VALUE) !== self::UNSET_VALUE;
     }
 
     /**
      * Get multiple options at once
-     * 
+     *
      * @param array<non-empty-string> $keys Array of option keys
      * @return array<string, mixed> Associative array of key => value pairs
      */
     public function getMultiple(array $keys): array
     {
         $results = [];
-        
+
         foreach ($keys as $key) {
             if (!empty($key)) {
                 $results[$key] = $this->get($key);
             }
         }
-        
+
         return $results;
     }
 
     /**
      * Update multiple options at once
-     * 
+     *
      * @param array<string, mixed> $options Associative array of key => value pairs
      * @param string $autoload Whether to autoload the options ('yes' or 'no')
      * @return array<string, bool> Associative array of key => success status
@@ -194,13 +233,26 @@ final class SettingsRepository
     public function updateMultiple(array $options, string $autoload = 'yes'): array
     {
         $results = [];
-        
+
         foreach ($options as $key => $value) {
             if (!empty($key)) {
                 $results[$key] = $this->update($key, $value, $autoload);
             }
         }
-        
+
         return $results;
+    }
+
+    /**
+     * Clear all caches (useful for testing and debugging)
+     *
+     * @return void
+     */
+    public static function clearCache(): void
+    {
+        self::$cache = [];
+
+        // Note: We can't clear the entire object cache group without knowing all keys
+        // Individual keys are cleared on update/delete
     }
 }

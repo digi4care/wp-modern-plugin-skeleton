@@ -18,23 +18,16 @@ namespace WP\Skeleton\Blocks;
 use WP_Error;
 use RuntimeException;
 use WP_Block_Type_Registry;
+use WP\Skeleton\Shared\Plugin\PluginContext;
 
 /**
  * Handles the initialization and management of Gutenberg blocks
  *
- * This class follows the singleton pattern to ensure only one instance
- * manages all block-related functionality. It implements WordPress best practices
- * for block development and handles edge cases gracefully.
+ * This class follows dependency injection pattern for better testability
+ * and follows WordPress best practices for block development.
  */
 final class BlocksLoader
 {
-    /**
-     * The single instance of the class
-     *
-     * @var self|null
-     */
-    private static ?self $instance = null;
-
     /**
      * Block namespace for this plugin
      *
@@ -57,17 +50,33 @@ final class BlocksLoader
     private const MIN_PHP_VERSION = '7.4';
 
     /**
-     * Get the singleton instance
-     *
-     * @return self
+     * Cache key for asset data
      */
-    public static function get_instance(): self
-    {
-        if (null === self::$instance) {
-            self::$instance = new self();
-        }
+    private const ASSET_CACHE_KEY = 'blocks_asset_data';
 
-        return self::$instance;
+    /**
+     * Cache expiration (24 hours)
+     */
+    private const ASSET_CACHE_EXPIRATION = 86400;
+
+    /**
+     * @var PluginContext
+     */
+    private PluginContext $pluginContext;
+
+    /**
+     * @var bool Track if blocks are initialized
+     */
+    private bool $isInitialized = false;
+
+    /**
+     * @var array|null Cached asset data
+     */
+    private static ?array $assetCache = null;
+
+    public function __construct(PluginContext $pluginContext)
+    {
+        $this->pluginContext = $pluginContext;
     }
 
     /**
@@ -76,27 +85,21 @@ final class BlocksLoader
      * @return void
      * @throws RuntimeException If initialization fails
      */
-    public static function init(): void
+    public function init(): void
     {
-        $loader = self::get_instance();
-        $loader->bootstrap();
-    }
+        if ($this->isInitialized) {
+            return;
+        }
 
-    /**
-     * Bootstrap the block loader
-     *
-     * @return void
-     * @throws RuntimeException If requirements are not met
-     */
-    private function bootstrap(): void
-    {
         $this->check_requirements();
-        
+
         // Hook into WordPress
         add_action('init', [$this, 'register_blocks']);
         add_action('enqueue_block_editor_assets', [$this, 'enqueue_editor_assets']);
         add_action('enqueue_block_assets', [$this, 'enqueue_block_assets']);
         add_filter('block_categories_all', [$this, 'register_block_category'], 10, 2);
+
+        $this->isInitialized = true;
     }
 
     /**
@@ -183,7 +186,7 @@ final class BlocksLoader
     private function register_block(string $block_name, array $args = [])
     {
         $block_slug = self::BLOCK_NAMESPACE . '/' . $block_name;
-        
+
         // Check if block is already registered
         if (WP_Block_Type_Registry::get_instance()->is_registered($block_slug)) {
             return false;
@@ -201,27 +204,82 @@ final class BlocksLoader
     }
 
     /**
+     * Get cached asset data with fallback
+     *
+     * @return array
+     */
+    private function getCachedAssetData(): array
+    {
+        if (self::$assetCache !== null) {
+            return self::$assetCache;
+        }
+
+        // Try transient cache first
+        self::$assetCache = get_transient(self::ASSET_CACHE_KEY);
+
+        if (self::$assetCache !== false) {
+            return self::$assetCache;
+        }
+
+        // Load fresh data
+        self::$assetCache = $this->loadAssetData();
+
+        // Cache for future requests
+        set_transient(self::ASSET_CACHE_KEY, self::$assetCache, self::ASSET_CACHE_EXPIRATION);
+
+        return self::$assetCache;
+    }
+
+    /**
+     * Load asset data from build files
+     *
+     * @return array
+     */
+    private function loadAssetData(): array
+    {
+        $asset_file = $this->pluginContext->getPluginDir('build/index.asset.php');
+
+        if (!file_exists($asset_file)) {
+            return [
+                'dependencies' => ['wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-i18n'],
+                'version' => $this->pluginContext->getVersion(),
+                'script_url' => $this->pluginContext->getPluginUrl('build/index.js'),
+                'style_url' => $this->pluginContext->getPluginUrl('build/index.css'),
+            ];
+        }
+
+        $asset_data = include $asset_file;
+
+        return [
+            'dependencies' => $asset_data['dependencies'] ?? ['wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-i18n'],
+            'version' => $asset_data['version'] ?? $this->pluginContext->getVersion(),
+            'script_url' => $this->pluginContext->getPluginUrl('build/index.js'),
+            'style_url' => $this->pluginContext->getPluginUrl('build/index.css'),
+        ];
+    }
+
+    /**
      * Enqueue block editor assets
      *
      * @return void
      */
     public function enqueue_editor_assets(): void
     {
-        $asset_file = include plugin_dir_path(__FILE__) . '../build/index.asset.php';
+        $assetData = $this->getCachedAssetData();
 
         wp_enqueue_script(
             'wp-skeleton-blocks-editor',
-            plugins_url('../build/index.js', __FILE__),
-            $asset_file['dependencies'],
-            $asset_file['version'],
+            $assetData['script_url'],
+            $assetData['dependencies'],
+            $assetData['version'],
             true
         );
 
         wp_enqueue_style(
             'wp-skeleton-blocks-editor',
-            plugins_url('../build/index.css', __FILE__),
+            $assetData['style_url'],
             [],
-            $asset_file['version']
+            $assetData['version']
         );
 
         // Localize script with data
@@ -239,12 +297,16 @@ final class BlocksLoader
      */
     public function enqueue_block_assets(): void
     {
-        wp_enqueue_style(
-            'wp-skeleton-blocks',
-            plugins_url('../build/style-index.css', __FILE__),
-            [],
-            filemtime(plugin_dir_path(__FILE__) . '../build/style-index.css')
-        );
+        $style_path = $this->pluginContext->getPluginDir('build/style-index.css');
+
+        if (file_exists($style_path)) {
+            wp_enqueue_style(
+                'wp-skeleton-blocks',
+                $this->pluginContext->getPluginUrl('build/style-index.css'),
+                [],
+                filemtime($style_path)
+            );
+        }
     }
 
     /**
@@ -259,7 +321,7 @@ final class BlocksLoader
             'nonce' => wp_create_nonce('wp_rest'),
             'siteUrl' => get_site_url(),
             'restUrl' => get_rest_url(),
-            'pluginUrl' => plugin_dir_url(dirname(__FILE__)),
+            'pluginUrl' => $this->pluginContext->getPluginUrl(),
             'isAdmin' => current_user_can('edit_posts'),
         ];
     }
@@ -275,7 +337,7 @@ final class BlocksLoader
     {
         // Add your block rendering logic here
         $classes = isset($attributes['className']) ? ' ' . esc_attr($attributes['className']) : '';
-        
+
         ob_start();
         ?>
         <div class="wp-block-wp-skeleton-example<?php echo $classes; ?>">
@@ -286,41 +348,35 @@ final class BlocksLoader
     }
 
     /**
-     * Prevent direct instantiation
+     * Check if blocks are initialized
      */
-    private function __construct() {}
-
-    /**
-     * Prevent cloning
-     */
-    private function __clone() {}
-
-    /**
-     * Prevent unserialization
-     */
-    public function __wakeup()
+    public function isInitialized(): bool
     {
-        throw new RuntimeException('Cannot unserialize singleton');
+        return $this->isInitialized;
+    }
+
+    /**
+     * Clear asset cache (useful for development)
+     *
+     * @return void
+     */
+    public static function clearAssetCache(): void
+    {
+        self::$assetCache = null;
+        delete_transient(self::ASSET_CACHE_KEY);
+    }
+
+    /**
+     * Get performance statistics
+     *
+     * @return array
+     */
+    public function getPerformanceStats(): array
+    {
+        return [
+            'asset_cache_loaded' => self::$assetCache !== null,
+            'is_initialized' => $this->isInitialized,
+            'cache_key' => self::ASSET_CACHE_KEY,
+        ];
     }
 }
-
-// Initialize the block loader
-add_action('plugins_loaded', function () {
-    try {
-        BlocksLoader::init();
-    } catch (RuntimeException $e) {
-        // Log the error
-        error_log('Failed to initialize BlocksLoader: ' . $e->getMessage());
-        
-        // Show admin notice if user can manage options
-        if (current_user_can('manage_options')) {
-            add_action('admin_notices', function () use ($e) {
-                ?>
-                <div class="notice notice-error">
-                    <p><?php echo esc_html('WP Skeleton Blocks Error: ' . $e->getMessage()); ?></p>
-                </div>
-                <?php
-            });
-        }
-    }
-});

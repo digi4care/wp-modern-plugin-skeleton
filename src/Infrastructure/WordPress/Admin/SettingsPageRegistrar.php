@@ -41,6 +41,11 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
      */
     private XPubSettingsAppLoader $appLoader;
 
+    /**
+     * Track if React app failed to load
+     */
+    private bool $reactAppFailed = false;
+
     public function __construct(XPubSettingsAppLoader $appLoader)
     {
         $this->appLoader = $appLoader;
@@ -140,7 +145,7 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
         ?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-            
+
             <!-- Traditional WordPress Settings Form -->
             <div id="wp-skeleton-traditional-settings">
                 <form action="options.php" method="post">
@@ -156,8 +161,21 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
             <div id="wp-skeleton-react-settings" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #ccd0d4;">
                 <h2><?php esc_html_e('Advanced Settings', 'wp-skeleton'); ?></h2>
                 <div id="wp-skeleton-settings-app">
-                    <div class="spinner is-active"></div>
-                    <p><?php esc_html_e('Loading advanced settings...', 'wp-skeleton'); ?></p>
+                    <?php if ($this->reactAppFailed): ?>
+                        <div class="notice notice-warning">
+                            <p>
+                                <?php
+                                esc_html_e(
+                                    'Advanced settings interface is temporarily unavailable. Please use the traditional settings above.',
+                                    'wp-skeleton'
+                                );
+                                ?>
+                            </p>
+                        </div>
+                    <?php else: ?>
+                        <div class="spinner is-active"></div>
+                        <p><?php esc_html_e('Loading advanced settings...', 'wp-skeleton'); ?></p>
+                    <?php endif; ?>
                 </div>
                 <noscript>
                     <div class="notice notice-error">
@@ -239,16 +257,16 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
     public function sanitizeSettings(array $input): array
     {
         $sanitized = [];
-        
+
         // Sanitize enable_greetings
         if (isset($input['enable_greetings'])) {
             $sanitized['enable_greetings'] = (bool) $input['enable_greetings'];
         }
-        
+
         // Sanitize default_name
         if (isset($input['default_name'])) {
             $sanitized['default_name'] = sanitize_text_field($input['default_name']);
-            
+
             // Validate name
             if (empty(trim($sanitized['default_name']))) {
                 add_settings_error(
@@ -259,7 +277,7 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
                 $sanitized['default_name'] = 'World';
             }
         }
-        
+
         return wp_parse_args($sanitized, $this->getDefaultSettings());
     }
 
@@ -290,19 +308,27 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
         // Enqueue WordPress media scripts for media uploader
         wp_enqueue_media();
 
-        // Enqueue the React application
-        $this->appLoader->register();
+        // Try to load React application with error handling
+        $result = $this->appLoader->register();
 
-        // Add admin styles
-        wp_enqueue_style(
-            'wp-skeleton-admin',
-            $this->appLoader->getPluginContext()->getAssetUrl('css/admin.css'),
-            [],
-            $this->appLoader->getPluginContext()->getVersion()
-        );
+        if (is_wp_error($result)) {
+            $this->reactAppFailed = true;
+            error_log('WP Skeleton: Failed to load React app - ' . $result->get_error_message());
+        }
 
-        // Add inline styles for better appearance
-        wp_add_inline_style('wp-skeleton-admin', $this->getAdminStyles());
+        // Add admin styles (always load these, even if React fails)
+        $adminCssPath = $this->appLoader->getPluginContext()->getAssetPath('css/admin.css');
+        if (file_exists($adminCssPath)) {
+            wp_enqueue_style(
+                'wp-skeleton-admin',
+                $this->appLoader->getPluginContext()->getAssetUrl('css/admin.css'),
+                [],
+                $this->appLoader->getPluginContext()->getVersion()
+            );
+
+            // Add inline styles for better appearance
+            wp_add_inline_style('wp-skeleton-admin', $this->getAdminStyles());
+        }
     }
 
     /**
@@ -323,6 +349,9 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
                 border-radius: 4px;
                 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             }
+            #wp-skeleton-react-settings .notice {
+                margin: 0;
+            }
         ';
     }
 
@@ -332,6 +361,18 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
     public function displayAdminNotices(): void
     {
         settings_errors('wp_skeleton_settings');
+
+        // Show React app loading warning if it failed
+        if ($this->reactAppFailed && self::isSettingsPage()) {
+            ?>
+            <div class="notice notice-warning">
+                <p>
+                    <strong><?php esc_html_e('WP Skeleton Notice:', 'wp-skeleton'); ?></strong>
+                    <?php esc_html_e('Advanced settings interface could not be loaded. Basic settings are still available.', 'wp-skeleton'); ?>
+                </p>
+            </div>
+            <?php
+        }
     }
 
     /**
@@ -353,5 +394,13 @@ final class SettingsPageRegistrar implements HookRegistrableInterface
     {
         $current_screen = get_current_screen();
         return $current_screen && $current_screen->id === 'settings_page_' . self::PAGE_SLUG;
+    }
+
+    /**
+     * Check if React app loaded successfully
+     */
+    public function isReactAppLoaded(): bool
+    {
+        return !$this->reactAppFailed;
     }
 }

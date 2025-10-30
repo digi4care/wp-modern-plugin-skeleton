@@ -85,77 +85,62 @@ class GreetingController extends WP_REST_Controller
     /**
      * Get a greeting
      */
-    public function get_greeting(WP_REST_Request $request): WP_REST_Response
+    public function get_greeting(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
         $name = $request->get_param('name') ?: 'World';
-        
-        try {
-            $greeting = $this->greetingApp->greet($name);
-            
-            return new WP_REST_Response([
-                'greeting' => $greeting,
-                'name' => $name,
-                'timestamp' => current_time('mysql'),
-            ], 200);
-            
-        } catch (InvalidArgumentException $e) {
-            return new WP_REST_Response([
-                'error' => $e->getMessage(),
-            ], 400);
+
+        $greeting = $this->greetingApp->greet($name);
+
+        if (is_wp_error($greeting)) {
+            return $greeting;
         }
+
+        return new WP_REST_Response([
+            'greeting' => $greeting,
+            'name' => $name,
+            'timestamp' => current_time('mysql'),
+        ], 200);
     }
 
     /**
      * Get greeting by specific name
      */
-    public function get_greeting_by_name(WP_REST_Request $request): WP_REST_Response
+    public function get_greeting_by_name(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
         $name = $request->get_param('name');
-        
-        try {
-            $greeting = $this->greetingApp->greet($name);
-            
-            return new WP_REST_Response([
-                'greeting' => $greeting,
-                'name' => $name,
-                'timestamp' => current_time('mysql'),
-            ], 200);
-            
-        } catch (InvalidArgumentException $e) {
-            return new WP_REST_Response([
-                'error' => $e->getMessage(),
-            ], 400);
+
+        $greeting = $this->greetingApp->greet($name);
+
+        if (is_wp_error($greeting)) {
+            return $greeting;
         }
+
+        return new WP_REST_Response([
+            'greeting' => $greeting,
+            'name' => $name,
+            'timestamp' => current_time('mysql'),
+        ], 200);
     }
 
     /**
      * Create a new greeting
      */
-    public function create_greeting(WP_REST_Request $request): WP_REST_Response
+    public function create_greeting(WP_REST_Request $request): WP_REST_Response|WP_Error
     {
         $name = $request->get_param('name');
-        
-        try {
-            if (!$this->greetingApp->isValidName($name)) {
-                return new WP_REST_Response([
-                    'error' => __('Invalid name provided.', 'wp-skeleton'),
-                ], 400);
-            }
-            
-            $greeting = $this->greetingApp->greet($name);
-            
-            return new WP_REST_Response([
-                'greeting' => $greeting,
-                'name' => $name,
-                'id' => uniqid(),
-                'timestamp' => current_time('mysql'),
-            ], 201);
-            
-        } catch (InvalidArgumentException $e) {
-            return new WP_REST_Response([
-                'error' => $e->getMessage(),
-            ], 400);
+
+        $greeting = $this->greetingApp->greet($name);
+
+        if (is_wp_error($greeting)) {
+            return $greeting;
         }
+
+        return new WP_REST_Response([
+            'greeting' => $greeting,
+            'name' => $name,
+            'id' => uniqid(),
+            'timestamp' => current_time('mysql'),
+        ], 201);
     }
 
     /**

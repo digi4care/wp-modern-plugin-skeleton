@@ -5,29 +5,60 @@ declare(strict_types=1);
 namespace WP\Skeleton\Infrastructure\WordPress\React;
 
 use WP\Skeleton\Shared\Plugin\PluginContext;
+use WP_Error;
+use InvalidArgumentException;
 use RuntimeException;
 
-final readonly class ReactAppLoader
+final class ReactAppLoader
 {
+    private static ?array $cachedManifest = null;
+    private static ?string $manifestPath = null;
+    private static array $loadedScripts = [];
+
     public function __construct(
-        private PluginContext $pluginContext,
+        private readonly PluginContext $pluginContext,
     ) {
     }
 
-    public function load(string $scriptName, string $jsVarName, array $dataToInject): void
+    /**
+     * Load React assets
+     *
+     * @return true|WP_Error True on success, WP_Error on failure with user-friendly message
+     */
+    public function load(string $scriptName, string $jsVarName, array $dataToInject): bool|WP_Error
     {
-        if ($this->isDevelopmentEnvironment()) {
-            $this->injectDevScripts($scriptName, $jsVarName, $dataToInject);
-        } else {
-            $this->injectProductionAssets($scriptName, $jsVarName, $dataToInject);
+        // Prevent duplicate loading
+        $cacheKey = $scriptName . ':' . $jsVarName;
+        if (isset(self::$loadedScripts[$cacheKey])) {
+            return true;
+        }
+
+        try {
+            if ($this->isDevelopmentEnvironment()) {
+                $this->injectDevScripts($scriptName, $jsVarName, $dataToInject);
+            } else {
+                $this->injectProductionAssets($scriptName, $jsVarName, $dataToInject);
+            }
+
+            self::$loadedScripts[$cacheKey] = true;
+            return true;
+
+        } catch (InvalidArgumentException $e) {
+            return new WP_Error(
+                'invalid_script_name',
+                __('Invalid script name provided.', 'wp-skeleton')
+            );
+        } catch (RuntimeException $e) {
+            return new WP_Error(
+                'asset_loading_failed',
+                __('Failed to load React assets. Please check the build process.', 'wp-skeleton')
+            );
         }
     }
 
     public function register(): void
     {
-        // This method can be used for pre-registration if needed
         add_action('admin_enqueue_scripts', function () {
-            // Ensure React and React DOM are available
             $this->ensureReactDependencies();
         });
     }
@@ -48,31 +79,46 @@ final readonly class ReactAppLoader
 
     private function injectDevScripts(string $scriptName, string $jsVarName, array $dataToInject): void
     {
-        add_action('admin_head', function () use ($scriptName, $jsVarName, $dataToInject) {
-            $dataJs = wp_json_encode($dataToInject, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-            $var = sanitize_key($jsVarName);
-            
-            // Security: escape all output
-            $script = sprintf(
-                '<script type="module" src="%s"></script>
-                <script type="module">
-                    import RefreshRuntime from "%s";
-                    RefreshRuntime.injectIntoGlobalHook(window);
-                    window.$RefreshReg$ = () => {};
-                    window.$RefreshSig$ = () => (type) => type;
-                    window.__vite_plugin_react_preamble_installed__ = true;
-                </script>
-                <script type="module" src="%s"></script>
-                <script type="module">window.%s = %s;</script>',
-                esc_url('http://localhost:5173/@vite/client'),
-                esc_url('http://localhost:5173/@react-refresh'),
-                esc_url('http://localhost:5173/' . $scriptName),
-                esc_js($var),
-                $dataJs
-            );
+        if (!$this->isValidScriptName($scriptName)) {
+            throw new InvalidArgumentException('Invalid script name');
+        }
 
-            echo $script;
-        });
+        $sanitizedScriptName = sanitize_file_name($scriptName);
+        $sanitizedVarName = sanitize_key($jsVarName);
+
+        $dataJs = wp_json_encode(
+            $dataToInject,
+            JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+        );
+
+        if ($dataJs === false) {
+            throw new RuntimeException('Failed to encode data for script injection');
+        }
+
+        $output = sprintf(
+            '<script type="module" src="%s"></script>
+            <script type="module">
+                import RefreshRuntime from "%s";
+                RefreshRuntime.injectIntoGlobalHook(window);
+                window.$RefreshReg$ = () => {};
+                window.$RefreshSig$ = () => (type) => type;
+                window.__vite_plugin_react_preamble_installed__ = true;
+            </script>
+            <script type="module" src="%s"></script>
+            <script type="module">window.%s = %s;</script>',
+            esc_url('http://localhost:5173/@vite/client'),
+            esc_url('http://localhost:5173/@react-refresh'),
+            esc_url('http://localhost:5173/' . $sanitizedScriptName),
+            esc_js($sanitizedVarName),
+            $dataJs
+        );
+
+        echo $output;
+    }
+
+    private function isValidScriptName(string $scriptName): bool
+    {
+        return preg_match('/^[a-zA-Z0-9._-]+$/', $scriptName) === 1;
     }
 
     private function injectProductionAssets(string $scriptName, string $jsVarName, array $dataToInject): void
@@ -145,8 +191,13 @@ final readonly class ReactAppLoader
 
     private function loadViteManifest(): ?array
     {
+        if (self::$cachedManifest !== null) {
+            return self::$cachedManifest;
+        }
+
         $path = $this->pluginContext->getPluginDir('assets/react/.vite/manifest.json');
-        
+        self::$manifestPath = $path;
+
         if (!file_exists($path)) {
             error_log('Vite manifest not found: ' . $path);
             return null;
@@ -159,22 +210,33 @@ final readonly class ReactAppLoader
         }
 
         $manifest = json_decode($json, true);
-        return is_array($manifest) ? $manifest : null;
+        self::$cachedManifest = is_array($manifest) ? $manifest : null;
+
+        return self::$cachedManifest;
     }
 
     private function ensureReactDependencies(): void
     {
-        // Ensure WordPress React dependencies are available
         if (!wp_script_is('wp-element', 'registered')) {
             wp_register_script('wp-element', '', [], false, true);
         }
-        
+
         if (!wp_script_is('wp-i18n', 'registered')) {
             wp_register_script('wp-i18n', '', [], false, true);
         }
-        
+
         if (!wp_script_is('wp-api-fetch', 'registered')) {
             wp_register_script('wp-api-fetch', '', [], false, true);
         }
+    }
+
+    /**
+     * Clear cache (useful for testing)
+     */
+    public static function clearCache(): void
+    {
+        self::$cachedManifest = null;
+        self::$manifestPath = null;
+        self::$loadedScripts = [];
     }
 }
