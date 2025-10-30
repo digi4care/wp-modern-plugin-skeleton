@@ -153,15 +153,42 @@ npm run dev
 npm run build
 ```
 
-### Build & Release
+## 🔄 Development Workflow
+
+### 1. Development
+
+- Work in `/src` for PHP code
+- Work in `/frontend` for JavaScript/React code
+- Use `npm run dev` in the frontend directory for live development
+
+### 2. Building for Production
 
 ```bash
-# Update plugin headers with latest version
-composer generate-header
+# 1. Build frontend assets
+cd frontend
+npm run build
 
-# Create a distributable zip file
-./build/build.sh
+# 2. Go back to root and create distribution
+cd ..
+./build/build.sh  # Creates a clean build in dist/
 ```
+
+### 3. Creating a Release
+
+1. Update version in `composer.json`
+2. Commit your changes
+3. Create a git tag:
+
+   ```bash
+   git tag -a v1.0.0 -m "Release 1.0.0"
+   git push origin v1.0.0
+   ```
+
+4. GitHub Actions will automatically create a release with the built plugin
+
+### 4. Testing the Build
+
+You can test the built plugin by copying the contents of the `dist/` directory to your WordPress plugins directory.
 
 ## 🏗️ Project Structure
 
