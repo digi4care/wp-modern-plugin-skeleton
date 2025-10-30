@@ -8,12 +8,27 @@ if (!file_exists($template)) {
     exit(1);
 }
 
-$slug = readline('Plugin slug: ');
-$slug = trim($slug);
-if ($slug === '') {
-    fwrite(STDERR, "Invalid plugin slug.\n");
+// Get plugin slug from composer.json
+$composerJsonPath = __DIR__ . '/../composer.json';
+if (!file_exists($composerJsonPath)) {
+    fwrite(STDERR, "composer.json not found.\n");
     exit(1);
 }
+
+$composerData = json_decode(file_get_contents($composerJsonPath), true);
+if (json_last_error() !== JSON_ERROR_NONE) {
+    fwrite(STDERR, "Invalid composer.json: " . json_last_error_msg() . "\n");
+    exit(1);
+}
+
+if (!isset($composerData['name'])) {
+    fwrite(STDERR, "No 'name' field found in composer.json\n");
+    exit(1);
+}
+
+// Extract slug from vendor/name format (e.g., 'example/wp-modern-plugin-skeleton' -> 'wp-modern-plugin-skeleton')
+$slug = basename($composerData['name']);
+echo "Using plugin slug: $slug\n";
 
 $pluginFile = __DIR__ . '/../' . $slug . '.php';
 if (file_exists($pluginFile)) {
