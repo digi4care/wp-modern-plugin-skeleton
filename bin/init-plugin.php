@@ -15,11 +15,7 @@ if (!file_exists($composerJsonPath)) {
     exit(1);
 }
 
-$composerData = json_decode(file_get_contents($composerJsonPath), true);
-if (json_last_error() !== JSON_ERROR_NONE) {
-    fwrite(STDERR, "Invalid composer.json: " . json_last_error_msg() . "\n");
-    exit(1);
-}
+$composerData = json_decode(file_get_contents($composerJsonPath), true, 512, JSON_THROW_ON_ERROR);
 
 if (!isset($composerData['name'])) {
     fwrite(STDERR, "No 'name' field found in composer.json\n");
@@ -36,10 +32,14 @@ if (file_exists($pluginFile)) {
     exit(1);
 }
 
+// Create the plugin file from template
 if (!copy($template, $pluginFile)) {
     fwrite(STDERR, "Failed to create plugin file.\n");
     exit(1);
 }
+
+// Now generate the header using the generate-header script
+require __DIR__ . '/generate-header.php';
 
 echo "Created plugin file $pluginFile\n";
 
