@@ -14,6 +14,6 @@ namespace WP\Skeleton\Shared\Exception;
 /**
  * Thrown when cron configuration is invalid
  */
-final class InvalidCronConfigurationException extends ConfigurationException
-{
+final class InvalidCronConfigurationException extends \WP\Skeleton\Shared\Exception\ConfigurationException {
+
 }

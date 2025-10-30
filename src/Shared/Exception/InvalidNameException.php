@@ -14,6 +14,6 @@ namespace WP\Skeleton\Shared\Exception;
 /**
  * Thrown when an invalid name is provided
  */
-final class InvalidNameException extends PluginException
-{
+final class InvalidNameException extends \WP\Skeleton\Shared\Exception\PluginException {
+
 }

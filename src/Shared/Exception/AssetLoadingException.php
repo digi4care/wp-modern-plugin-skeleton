@@ -14,6 +14,6 @@ namespace WP\Skeleton\Shared\Exception;
 /**
  * Thrown when asset loading fails
  */
-final class AssetLoadingException extends PluginException
-{
+final class AssetLoadingException extends \WP\Skeleton\Shared\Exception\PluginException {
+
 }
