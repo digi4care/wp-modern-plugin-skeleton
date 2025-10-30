@@ -3,12 +3,34 @@
   "description": "Modern WordPress plugin skeleton using hexagonal architecture",
   "type": "wordpress-plugin",
   "license": "MIT",
+  "authors": [
+    {
+      "name": "Chris Engelhard",
+      "email": "chris@synerflow.nl",
+      "homepage": "https://synerflow.nl",
+      "role": "Developer"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org"
+    }
+  ],
   "require": {
     "php": "^8.2",
-    "php-di/php-di": "^7.0"
+    "php-di/php-di": "^7.0",
+    "composer/installers": "^2.2"
   },
   "require-dev": {
-    "phpunit/phpunit": "^11.5"
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.1",
+    "johnpbloch/wordpress": "*",
+    "phpcompatibility/phpcompatibility-wp": "^2.1",
+    "phpstan/phpstan": "^1.10",
+    "phpunit/phpunit": "^11.5",
+    "slevomat/coding-standard": "^8.10",
+    "squizlabs/php_codesniffer": "^3.7",
+    "wp-coding-standards/wpcs": "^3.2"
   },
   "autoload": {
     "psr-4": {
@@ -16,12 +38,54 @@
     }
   },
   "scripts": {
-    "generate-header": [
-      "php generate-header.php"
-    ],
+    "init-plugin": "php bin/init-plugin.php",
+    "generate-header": "php bin/generate-header.php",
     "test": "vendor/bin/phpunit --configuration phpunit.xml",
-    "init-plugin": [
-      "php bin/init-plugin.php"
+    "test:coverage": "phpunit --coverage-html coverage",
+    "cs": "php -d memory_limit=512M ./vendor/bin/phpcs --standard=.phpcs.xml . || [ $? -eq 1 ]",
+    "cbf": "php -d memory_limit=512M ./vendor/bin/phpcbf --standard=.phpcs.xml . || [ $? -eq 1 ]",
+    "stan": "phpstan analyse src/ --level=max",
+    "check": [
+      "@cs",
+      "@stan",
+      "@test"
+    ],
+    "fix": [
+      "@cbf"
+    ],
+    "post-install-cmd": [
+      "@generate-header"
+    ],
+    "post-update-cmd": [
+      "@generate-header"
     ]
+  },
+  "extra": {
+    "installer-paths": {
+      "wordpress/": [
+        "type:wordpress-core"
+      ]
+    },
+    "plugin-name": "WP Modern Plugin Skeleton",
+    "plugin-uri": "https://github.com/N3XT0R/wp-modern-plugin-skeleton",
+    "plugin-description": "Modern WordPress plugin skeleton using hexagonal architecture",
+    "text-domain": "wp-modern-plugin-skeleton",
+    "tested-up-to": "6.8",
+    "minimum-wp-version": "6.0",
+    "minimum-php-version": "8.2"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "johnpbloch/wordpress-core-installer": true,
+      "php-http/discovery": true
+    },
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "platform": {
+      "php": "8.2"
+    }
   }
 }
