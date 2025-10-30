@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "wp-skeleton/greeting",
+  "version": "1.0.0",
+  "title": "Greeting Block",
+  "category": "wp-skeleton",
+  "icon": "smiley",
+  "description": "Display a personalized greeting message using the WP Skeleton plugin.",
+  "example": {
+    "attributes": {
+      "name": "WordPress"
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": true,
+    "color": {
+      "text": true,
+      "background": true
+    },
+    "typography": {
+      "fontSize": true
+    }
+  },
+  "textdomain": "wp-skeleton",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css",
+  "attributes": {
+    "name": {
+      "type": "string",
+      "default": "World"
+    },
+    "alignment": {
+      "type": "string",
+      "default": "left"
+    },
+    "textColor": {
+      "type": "string"
+    },
+    "backgroundColor": {
+      "type": "string"
+    },
+    "fontSize": {
+      "type": "string"
+    }
+  }
+}

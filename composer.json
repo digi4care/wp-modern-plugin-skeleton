@@ -34,8 +34,7 @@
   },
   "autoload": {
     "psr-4": {
-      "WP\\Skeleton\\": "src/",
-      "WP\\Skeleton\\Blocks\\": "src/Blocks/"
+      "WP\\Skeleton\\": "src/"
     }
   },
   "scripts": {
