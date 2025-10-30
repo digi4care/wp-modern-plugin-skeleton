@@ -1,496 +1,384 @@
 # WordPress Modern Plugin Skeleton
 
-A professional starting point for building modern WordPress plugins with clean architecture, dependency injection, and modern tooling. This template provides a solid foundation for developing WordPress plugins with a React-based frontend and modern PHP backend.
+A professional, production-ready foundation for building modern WordPress plugins with clean architecture, dependency injection, and modern development workflows. This skeleton implements a complete greeting functionality demo while providing an enterprise-grade structure for your custom plugins.
 
-## ✨ Features
+## 🎯 What This Plugin Does
 
-### 🚀 Core Features
+This plugin demonstrates a complete modern WordPress plugin architecture with:
 
-- Modern WordPress plugin development with best practices
-- Clean architecture with separation of concerns
-- Dependency injection for better testability
-- Secure WordPress coding standards compliance
+### ✨ Core Features
 
-### 🎨 Frontend & Blocks
+- **Greeting System**: Functional greeting shortcodes and REST API endpoints
+- **Gutenberg Blocks**: Custom "Greeting Block" for the block editor
+- **REST API**: Fully functional API endpoints at `/wp-json/wp-skeleton/v1/greeting`
+- **Admin Interface**: Settings page with React-based administration
+- **Cron System**: Configurable scheduled tasks system
 
-- Modern development with Vite and React
-- Gutenberg block development ready
-- Hot module replacement for development
-- WordPress components and hooks integration
+### 🛠️ Technical Features
 
-### 🛠️ Development Tools
-
-- Built-in testing and code quality tools
-- i18n support out of the box
-- Automated build and release process
-- Composer for PHP dependency management
+- **Clean Architecture**: Hexagonal architecture with proper separation of concerns
+- **Dependency Injection**: PHP-DI container for better testability and maintainability
+- **Modern Tooling**: Vite, React, PHPStan, PHPUnit, WordPress Coding Standards
+- **Development Environment**: Built-in WordPress environment with `@wordpress/env`
 
 ## 🚀 Quick Start
 
-### 1. Create a New Plugin
+### 1. Create Your Plugin
 
-#### Option 1: GitHub Template
+#### Option 1: GitHub Template (Recommended)
 
 1. Click "Use this template" at the top of this repository
-2. Name your new repository (e.g., `my-awesome-plugin`)
+2. Name your new repository (e.g., `my-wordpress-plugin`)
 3. Clone your new repository locally
 
 #### Option 2: Manual Setup
 
 ```bash
-# Clone this repository (don't fork!)
-git clone --depth=1 https://github.com/digi4care/wp-modern-plugin-skeleton.git my-awesome-plugin
-cd my-awesome-plugin
+# Clone without git history
+git clone --depth=1 https://github.com/digi4care/wp-modern-plugin-skeleton.git my-plugin-name
+cd my-plugin-name
 rm -rf .git
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin https://github.com/your-username/my-awesome-plugin.git
-git push -u origin main
 ```
 
-## 🛠️ Development Setup
+### 2. Customize Plugin Identity
 
-### 1. Install Dependencies
+Before installation, update all references to match your plugin:
+
+```bash
+# Update all references from:
+# "wp-skeleton" → "your-plugin-name"
+# "WP Skeleton" → "Your Plugin Name"
+# "wp-modern-plugin-skeleton" → "your-plugin-slug"
+```
+
+Update these files with your plugin details:
+
+- `composer.json` - Plugin metadata and dependencies
+- `wp-modern-plugin-skeleton.php` - Main plugin file header
+- `package.json` - Frontend configuration
+- All configuration files in `config/`
+
+### 3. Installation & Setup
 
 ```bash
 # Install PHP dependencies
 composer install
 
-# Install JavaScript dependencies
-cd frontend
-npm install
+# Install and configure the plugin
+composer init-plugin
+
+# Start development environment
+npm run dev
 ```
 
-### 2. Configure Your Plugin
+The `composer init-plugin` command will:
 
-1. Update `composer.json` with your plugin details:
+- Create the main plugin file with proper headers
+- Set up frontend package.json
+- Configure all necessary files with your plugin name
 
-    ```json
-    {
-        "name": "your-vendor/your-plugin-slug",
-        "description": "Your plugin description",
-        "authors": [{"name": "Your Name", "email": "your.email@example.com"}],
-        "extra": {
-            "plugin-name": "Your Plugin Name",
-            "plugin-uri": "https://your-plugin-url.com",
-            "text-domain": "your-plugin-slug"
-        }
-    }
-    ```
+## 🎮 Using the Plugin
 
-2. Initialize the plugin:
+### Shortcodes
 
-    ```bash
-    composer init-plugin
-    ```
+The plugin provides ready-to-use shortcodes:
 
-    This will automatically:
-    - Create main plugin file with proper headers
-    - Set up frontend package.json
-    - Configure CI/CD workflow
+**Basic Greeting:**
 
-## 🧰 Available Commands
+```php
+[skeleton_greet name="John"]
+<!-- Output: <div class="wp-skeleton-greeting">Hello, John!</div> -->
+```
 
-### Development Commands
+**Advanced Multi-Greeting:**
 
-#### Testing & Quality Assurance
+```php
+[skeleton_greet_advanced names="John, Jane, Bob" separator=" - "]
+<!-- Output: <div class="wp-skeleton-advanced-greeting">Hello, John! - Hello, Jane! - Hello, Bob!</div> -->
+```
+
+### REST API Endpoints
+
+**Get a greeting:**
+
+```http
+GET /wp-json/wp-skeleton/v1/greeting?name=John
+```
+
+Response:
+
+```json
+{
+  "greeting": "Hello, John!",
+  "name": "John",
+  "timestamp": "2024-01-01 12:00:00"
+}
+```
+
+**Get greeting by name:**
+
+```http
+GET /wp-json/wp-skeleton/v1/greeting/John
+```
+
+### Gutenberg Blocks
+
+1. Edit any post or page
+2. Click the "+" button to add a block
+3. Search for "Greeting Block" in the block inserter
+4. Add the block and configure the name in the block settings
+
+### Admin Settings
+
+1. Go to WordPress Admin → Settings → WP Skeleton
+2. Configure default settings and enable/disable features
+3. Use the React-based advanced settings interface
+
+## 🛠️ Development Commands
+
+### Testing & Quality Assurance
 
 ```bash
-# Run all PHPUnit tests
+# Run all tests
 composer test
-# - Verifies your code works as expected
-# - Tests are located in the 'tests/' directory
-# - Creates code coverage reports in 'coverage/'
 
-# Check code style against WordPress Coding Standards
+# Check code style (WordPress Coding Standards)
 composer cs
-# - Validates your code follows WordPress coding standards
-# - Helps maintain consistent code style across the project
-# - Will show errors and warnings for style violations
 
 # Automatically fix code style issues
 composer cbf
-# - Fixes most code style issues automatically
-# - Safe to run as it only changes formatting, not logic
-# - Run this after 'composer cs' to fix reported issues
 
-# Static code analysis with PHPStan
+# Static analysis with PHPStan
 composer stan
-# - Analyzes code for potential bugs and issues
-# - Checks type safety and finds dead code
-# - More thorough than basic syntax checking
 
 # Run all checks (tests, code style, static analysis)
 composer check
-# - One command to run all quality checks
-# - Perfect before committing code
-# - Ensures all quality gates pass
 ```
-
-#### Why WordPress Core in Development?
-
-WordPress core is installed in the `wordpress/` directory for development purposes only. This helps with:
-
-1. **Testing**: Run unit and integration tests without needing a full WordPress installation
-2. **Code Completion**: Your IDE can provide better autocompletion and type hints
-3. **Dependency Resolution**: Ensures all WordPress functions and classes are available during development
-4. **Isolation**: Keeps your development environment self-contained
-
-This is a development-only dependency (in `require-dev` in `composer.json`) and won't be included in your production build.
 
 ### Frontend Development
 
 ```bash
+# Start frontend development server
 cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
 npm run dev
 
 # Build for production
 npm run build
 ```
 
-## 🔄 Development Workflow
-
-### 1. Development Structure
-
-- PHP code: `/src` directory
-- JavaScript/React: `/frontend` directory
-- Run `npm run dev` in `/frontend` for live development
-
-### 2. Version Management
-
-Use Composer commands to manage versions:
+### Environment Management
 
 ```bash
-composer version:patch  # 0.0.1 → 0.0.2
-composer version:minor  # 0.1.0 → 0.2.0
-composer version:major  # 1.0.0 → 2.0.0
+# Start WordPress development environment
+npm run start
+
+# Stop environment
+npm run stop
+
+# Clean and reset environment
+npm run clean
 ```
 
-This will update versions in `composer.json`, plugin headers, and create git commits/tags.
+## 🏗️ Architecture Overview
 
-### 3. Building for Production
+This plugin follows clean architecture principles:
+
+### Domain Layer (`src/Domain/`)
+
+- Business logic and entities
+- `SampleService.php` - Greeting business logic
+- `CronConfiguration.php` - Scheduled tasks configuration
+
+### Application Layer (`src/Application/`)
+
+- Use cases and application logic
+- `GreetingApplication.php` - Coordinates greeting operations
+- Service layer between domain and presentation
+
+### Infrastructure Layer (`src/Infrastructure/`)
+
+- WordPress-specific implementations
+- REST API controllers
+- Settings repository
+- Block registration
+
+### Adapter Layer (`src/Adapter/`)
+
+- WordPress integration points
+- `WordpressPlugin.php` - Main plugin bootstrap
+- `WordpressCron.php` - Cron job management
+
+## 📁 Project Structure
+
+```tree
+├── .github/                 # GitHub workflows and templates
+│   └── workflows/           # CI/CD pipelines
+│       └── ci.template.yml  # GitHub Actions workflow
+├── bin/                     # Development scripts
+│   ├── benchmark.php        # Performance testing
+│   ├── clean-files.php      # Cleanup utility
+│   ├── generate-header.php  # Plugin header generator
+│   └── init-plugin.php      # Plugin initialization
+├── build/                   # Build configuration
+│   └── build.sh             # Build script
+├── cache/                   # Cache directory
+│   └── container/           # DI container cache
+│       ├── compiled/        # Compiled container files
+│       └── proxies/         # Proxy classes
+├── config/                  # Configuration files
+│   └── di.php              # Dependency injection config
+├── dist/                    # Built plugin (generated)
+├── docs/                    # Documentation
+├── frontend/                # Frontend application
+│   ├── blocks/              # Gutenberg blocks
+│   │   └── example-block/   # Example block
+│   ├── components/          # React components
+│   │   └── SettingsPage.jsx # Admin settings page
+│   ├── translations/        # i18n files
+│   │   ├── de_DE.json
+│   │   ├── fr_FR.json
+│   │   ├── it_IT.json
+│   │   └── en_US.json
+│   ├── App.jsx             # Main React component
+│   ├── index.js            # Entry point
+│   ├── index.html          # HTML template
+│   ├── index.css           # Global styles
+│   └── vite.config.js      # Vite configuration
+├── src/                     # PHP source code
+│   ├── Adapter/            # WordPress adapters
+│   │   ├── WordpressCron.php
+│   │   └── WordpressPlugin.php
+│   ├── Application/        # Application layer
+│   │   └── DI/             # Dependency injection
+│   ├── Blocks/             # Block handling
+│   │   └── Greeting/       # Greeting block
+│   ├── Domain/             # Domain logic
+│   │   ├── Configuration/
+│   │   ├── DI/             # Domain DI config
+│   │   └── SampleService.php
+│   └── Shared/             # Shared components
+│       └── Exception/      # Custom exceptions
+│           ├── AssetLoadingException.php
+│           ├── InvalidCronConfigurationException.php
+│           └── InvalidNameException.php
+├── tests/                  # Test suite
+│   └── Unit/               # Unit tests
+│       └── Shared/         # Shared test utilities
+├── vendor/                 # Composer dependencies
+├── .editorconfig           # Editor configuration
+├── .gitignore             # Git ignore rules
+├── .phpcs.xml             # PHP_CodeSniffer config
+├── .wp-env.json           # WordPress environment config
+├── composer.json          # PHP dependencies
+├── package.json           # Frontend dependencies
+├── phpstan.neon           # PHPStan config
+├── phpunit.xml           # PHPUnit config
+└── README.md             # This file
+```
+
+## 🔧 Customization Guide
+
+### Adding New Features
+
+1. **Domain Service** (Business Logic):
+
+   ```php
+   // src/Domain/YourFeatureService.php
+   class YourFeatureService {
+       public function doSomething(): string {
+           return "Your business logic";
+       }
+   }
+   ```
+
+2. **Application Service** (Use Cases):
+
+   ```php
+   // src/Application/YourFeatureApplication.php
+   class YourFeatureApplication {
+       public function __construct(private YourFeatureService $service) {}
+       
+       public function executeFeature(): string {
+           return $this->service->doSomething();
+       }
+   }
+   ```
+
+3. **Register in DI Container**:
+
+   ```php
+   // config/di.php
+   YourFeatureService::class => \DI\create(YourFeatureService::class),
+   YourFeatureApplication::class => \DI\create(YourFeatureApplication::class)
+       ->constructor(\DI\get(YourFeatureService::class)),
+   ```
+
+4. **Create Shortcode or REST Endpoint** (if needed)
+
+### Adding New Gutenberg Blocks
+
+1. Create block in `frontend/blocks/your-block/`
+2. Add `block.json` and React components
+3. The block will be automatically registered
+
+## 🚀 Production Deployment
+
+### Building for Production
 
 ```bash
 # Build frontend assets
 cd frontend
 npm run build
-cd ..
 
-# Create distribution
-./build/build.sh  # Outputs to dist/
+# Create production build
+./build/build.sh
 ```
 
-### 4. Creating a Release
-
-1. Bump version using above commands
-2. Push changes and tags:
-
-   ```bash
-   git push && git push --tags
-   ```
-
-3. GitHub Actions will create a release automatically
-
-### 5. Frontend Package Management
-
-The `bin/update-frontend-package.php` script keeps frontend configuration in sync. It runs automatically during plugin initialization or manually via:
-
-```bash
-php bin/update-frontend-package.php
-```
-
-## 🏗️ Project Structure
-
-```text
-├── bin/                      # Helper scripts
-│   ├── generate-header.php      # Generates plugin header
-│   ├── init-plugin.php         # Initializes a new plugin
-│   └── update-frontend-package.php # Syncs frontend package.json
-│
-├── build/                    # Build scripts
-│   └── build.sh              # Production build script
-│
-├── cache/                    # Cache directory
-│   └── container/            # Dependency injection container cache
-│
-├── frontend/                 # Frontend application
-│   ├── blocks/               # Gutenberg blocks
-│   │   └── example-block/    # Example block
-│   │       ├── src/          # Block source files
-│   │       │   ├── edit.js   # Block editor component
-│   │       │   ├── save.js   # Block frontend component
-│   │       │   └── index.js  # Block registration
-│   │       └── block.json    # Block configuration
-│   │
-│   ├── components/           # Reusable React components
-│   ├── translations/         # i18n translation files
-│   ├── App.jsx               # Root React component
-│   ├── main.jsx              # Application entry point
-│   ├── index.html            # HTML template
-│   ├── index.css             # Global styles
-│   └── vite.config.js        # Vite configuration
-│
-├── src/                      # PHP source code
-│   ├── Adapter/              # WordPress adapters
-│   ├── Application/          # Application layer
-│   ├── Blocks/               # PHP block handling
-│   ├── Domain/               # Domain logic
-│   └── Infrastructure/       # Infrastructure code
-│
-├── tests/                    # Test files
-│   ├── Unit/                 # Unit tests
-│   └── Integration/          # Integration tests
-│
-├── vendor/                   # Composer dependencies
-├── .gitignore               # Git ignore rules
-├── composer.json            # PHP dependencies
-├── package.json             # Frontend dependencies
-└── README.md                # This file
-```
-
-## 🧱 Gutenberg Blocks
-
-This plugin includes a modern block development environment with the following features:
-
-- 🚀 Automatic block registration
-- ⚡ Lazy loading (only loads when Gutenberg is active)
-- 🔄 Hot module replacement in development
-- 🎨 Built-in support for React and modern JavaScript
-
-### Block Structure
-
-Each block should be placed in its own directory under `frontend/blocks/` with this structure:
-
-```text
-block-name/
-├── src/
-│   ├── edit.js    # Editor component
-│   ├── save.js    # Frontend component
-│   ├── index.js   # Block registration
-│   └── style.scss # Block styles
-└── block.json     # Block configuration
-```
-
-### Creating a New Block
-
-1. **Create a new directory** for your block in `frontend/blocks/`
-
-2. **Add a `block.json` file**:
-
-    ```json
-    {
-        "$schema": "https://schemas.wp.org/trunk/block.json",
-        "apiVersion": 3,
-        "name": "your-plugin/block-name",
-        "title": "Block Name",
-        "category": "widgets",
-        "icon": "smiley",
-        "editorScript": "file:./build/index.js"
-    }
-    ```
-
-3. **Create the block components**:
-
-    - `edit.js` - Controls the block's appearance in the editor
-    - `save.js` - Controls the block's output on the frontend
-    - `index.js` - Registers the block
-
-4. **The block will be automatically registered** when Gutenberg is active
-
-### Block Development
-
-```bash
-# Start development server with HMR
-cd frontend
-npm run dev
-
-# Build for production
-npm run build
-```
-
-### Best Practices
-
-1. **Keep blocks independent** - Each block should work on its own
-2. **Use WordPress components** - Leverage `@wordpress/components` when possible
-3. **Lazy load assets** - Only load what's needed for each block
-4. **Support i18n** - Use `@wordpress/i18n` for translatable strings
-
-### Example Block
-
-See `frontend/blocks/example-block/` for a complete example. You can use this as a starting point for your own blocks.
-
-## 🎨 Frontend Development
-
-The frontend is built using React with Vite. The main entry points are:
-
-- `frontend/main.jsx` - Application entry point
-- `frontend/App.jsx` - Root React component
-- `frontend/components/` - Reusable React components
-- `frontend/translations/` - Translation files
-
-### Development Workflow
-
-1. **Start the development server**:
-
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-
-2. **Build for production**:
-
-   ```bash
-   npm run build
-   ```
-
-3. **Check for issues**:
-
-   ```bash
-   npm run lint    # Check code style
-   npm run typecheck  # Type checking
-   ```
-
-### Managing Frontend Dependencies
-
-- Add new dependencies using npm:
-
-  ```bash
-  cd frontend
-  npm install package-name
-  ```
-
-- Update dependencies:
-
-  ```bash
-  npm update
-  ```
-
-### Styling
-
-- Main styles are located in `frontend/index.css`
-- Block-specific styles should be placed in their respective block directories
-- Uses PostCSS with modern CSS features
-- Supports CSS Modules for component-scoped styles
-
-The frontend is built using React with Vite. The main entry points are:
-
-- `frontend/main.jsx` - Application entry point
-- `frontend/App.jsx` - Root React component
-- `frontend/components/` - Reusable React components
-- `frontend/translations/` - Translation files
-
-Run the development server with:
-
-```bash
-cd frontend
-npm run dev
-```
-
-## 🔄 Local Development Workflow
-
-1. **Start the development environment**:
-
-   ```bash
-   # Install PHP dependencies
-   composer install
-   
-   # Install frontend dependencies
-   cd frontend
-   npm install
-   
-   # Start the development server
-   npm run dev
-   ```
-
-2. **Running Tests**:
-
-   ```bash
-   # Run PHPUnit tests
-   composer test
-   
-   # Run PHPStan (static analysis)
-   composer stan
-   
-   # Check code style
-   composer cs
-   ```
-
-### Building for Production
-
-1. **Build the frontend assets**:
-
-   ```bash
-   cd frontend
-   npm run build
-   ```
-
-2. **Create a production build**:
-
-   ```bash
-   # From the project root
-   ./build/build.sh
-   ```
-
-   This will create a production-ready build in the `dist/` directory.
+The build script creates a production-ready ZIP file in the `dist/` directory.
 
 ### Version Management
 
-Use Composer to manage versions:
-
 ```bash
-# Bump patch version (0.0.1 → 0.0.2)
-composer version:patch
-
-# Bump minor version (0.1.0 → 0.2.0)
-composer version:minor
-
-# Bump major version (1.0.0 → 2.0.0)
-composer version:major
+# Bump version (updates all files automatically)
+composer version:patch  # 0.0.1 → 0.0.2
+composer version:minor  # 0.1.0 → 0.2.0  
+composer version:major  # 1.0.0 → 2.0.0
 ```
 
-These commands will update the version in `composer.json`, update the plugin header, create a git commit, and tag the release.
+## 🐛 Troubleshooting
 
-## 🔄 Continuous Integration
+### Common Issues
 
-This project includes GitHub Actions workflows that automatically:
+**Circular Dependency Error:**
 
-- Run tests on every push
-- Check code style
-- Perform static analysis
-- Build the plugin on tags
+- Run `composer dump-autoload`
+- Clear DI container cache: delete `cache/container/` directory
 
-## 📦 Creating a Release
+**Frontend Not Loading:**
 
-1. Update the version in `composer.json`
-2. Update `CHANGELOG.md`
-3. Commit your changes
-4. Create a git tag:
+- Run `cd frontend && npm install`
+- Check that `npm run build` completed successfully
 
-    ```bash
-    git tag -a v1.0.0 -m "Initial release"
-    git push origin v1.0.0
-    ```
+**Blocks Not Appearing:**
 
-5. GitHub Actions will automatically create a release with the built plugin
+- Ensure Gutenberg is active
+- Check browser console for JavaScript errors
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and fix any issues
-5. Submit a pull request
-
-## 🙏 Credits
-
-This project is based on the [WP Modern Plugin Skeleton](https://github.com/N3XT0R/wp-modern-plugin-skeleton) by [Ilya Beliaev (N3XT0R)](https://github.com/N3XT0R). We're grateful for their work in creating this excellent foundation for WordPress plugin development.
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
 ## 📄 License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Credits
+
+Built upon the [WP Modern Plugin Skeleton](https://github.com/N3XT0R/wp-modern-plugin-skeleton) by [Ilya Beliaev (N3XT0R)](https://github.com/N3XT0R).
