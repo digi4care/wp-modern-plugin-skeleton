@@ -4,19 +4,12 @@ A professional starting point for building modern WordPress plugins with clean a
 
 ## ✨ Features
 
-### 🚀 WordPress Plugin Development
+### 🚀 Core Features
 
 - Modern WordPress plugin development with best practices
-- Clean integration with WordPress core and admin area
-- Plugin settings page with React-based UI
-- Secure WordPress coding standards compliance
-
-### 🏗️ Architecture & Development
-
 - Clean architecture with separation of concerns
 - Dependency injection for better testability
-- Modern PHP 8+ features and type safety
-- Composer for PHP dependency management
+- Secure WordPress coding standards compliance
 
 ### 🎨 Frontend & Blocks
 
@@ -25,37 +18,33 @@ A professional starting point for building modern WordPress plugins with clean a
 - Hot module replacement for development
 - WordPress components and hooks integration
 
-### 🛠️ Tooling & Workflow
+### 🛠️ Development Tools
 
 - Built-in testing and code quality tools
 - i18n support out of the box
 - Automated build and release process
-- Git hooks for code quality checks
+- Composer for PHP dependency management
 
-## 🚀 Quick Start: Create a New Plugin
+## 🚀 Quick Start
 
-### Option 1: Using GitHub Template
+### 1. Create a New Plugin
 
-1. Click the "Use this template" button at the top of this repository
+#### Option 1: GitHub Template
+
+1. Click "Use this template" at the top of this repository
 2. Name your new repository (e.g., `my-awesome-plugin`)
 3. Clone your new repository locally
 
-### Option 2: Manual Setup
+#### Option 2: Manual Setup
 
 ```bash
-# Clone this repository (don't fork it!)
+# Clone this repository (don't fork!)
 git clone --depth=1 https://github.com/digi4care/wp-modern-plugin-skeleton.git my-awesome-plugin
 cd my-awesome-plugin
-
-# Remove the existing git history
 rm -rf .git
-
-# Initialize a new git repository
 git init
 git add .
 git commit -m "Initial commit"
-
-# Add your remote repository
 git remote add origin https://github.com/your-username/my-awesome-plugin.git
 git push -u origin main
 ```
@@ -75,44 +64,31 @@ npm install
 
 ### 2. Configure Your Plugin
 
-1. **First, update `composer.json`**:
+1. Update `composer.json` with your plugin details:
 
-    - Open `composer.json`
-    - Update these fields:
-
-        ```json
-        {
-            "name": "your-vendor/your-plugin-slug",
-            "description": "Your plugin description",
-            "authors": [
-                {
-                    "name": "Your Name",
-                    "email": "your.email@example.com"
-                }
-            ],
-            "extra": {
-                "plugin-name": "Your Plugin Name",
-                "plugin-uri": "https://your-plugin-url.com",
-                "text-domain": "your-plugin-slug"
-            }
+    ```json
+    {
+        "name": "your-vendor/your-plugin-slug",
+        "description": "Your plugin description",
+        "authors": [{"name": "Your Name", "email": "your.email@example.com"}],
+        "extra": {
+            "plugin-name": "Your Plugin Name",
+            "plugin-uri": "https://your-plugin-url.com",
+            "text-domain": "your-plugin-slug"
         }
-        ```
+    }
+    ```
 
-2. **Run the initialization script**:
+2. Initialize the plugin:
 
     ```bash
-    # This will use the values from composer.json to set up everything
     composer init-plugin
     ```
 
-    The script will automatically:
-
-    - Create your main plugin file with proper headers
-    - Set up the frontend package.json
-    - Configure the CI/CD workflow
-    - Generate all necessary configuration files
-
-    You only need to update `composer.json` - all other files will be generated automatically based on these settings.
+    This will automatically:
+    - Create main plugin file with proper headers
+    - Set up frontend package.json
+    - Configure CI/CD workflow
 
 ## 🧰 Available Commands
 
@@ -180,88 +156,54 @@ npm run build
 
 ## 🔄 Development Workflow
 
-### 1. Development
+### 1. Development Structure
 
-- Work in `/src` for PHP code
-- Work in `/frontend` for JavaScript/React code
-- Use `npm run dev` in the frontend directory for live development
+- PHP code: `/src` directory
+- JavaScript/React: `/frontend` directory
+- Run `npm run dev` in `/frontend` for live development
 
 ### 2. Version Management
 
-#### English
-
-Manage your plugin version easily using Composer commands:
+Use Composer commands to manage versions:
 
 ```bash
-# Bump patch version (0.0.1 → 0.0.2)
-composer version:patch
-
-# Bump minor version (0.1.0 → 0.2.0)
-composer version:minor
-
-# Bump major version (1.0.0 → 2.0.0)
-composer version:major
+composer version:patch  # 0.0.1 → 0.0.2
+composer version:minor  # 0.1.0 → 0.2.0
+composer version:major  # 1.0.0 → 2.0.0
 ```
 
-These commands will:
+This will update versions in `composer.json`, plugin headers, and create git commits/tags.
 
-1. Update the version in `composer.json`
-2. Update the version in your plugin header
-3. Create a git commit with the version bump
-4. Create a git tag for the new version
-
-### 3. Frontend Package Management
-
-The `bin/update-frontend-package.php` script ensures your frontend's `package.json` stays in sync with your plugin's configuration. It automatically:
-
-- Updates the package name to match your plugin name
-- Syncs the version number with your plugin version
-- Preserves essential frontend dependencies and scripts
-
-#### How It Works
-
-1. **Automatic Execution**: Runs automatically when you initialize a new plugin using `composer init-plugin`
-2. **Configuration Preservation**: Maintains critical frontend settings:
-    - Build scripts (`dev`, `build`, `preview`)
-    - Required dependencies (React, WordPress i18n)
-    - Development tooling (Vite, Tailwind CSS)
-
-#### Manual Execution
-
-If you need to update the frontend package manually:
+### 3. Building for Production
 
 ```bash
-php bin/update-frontend-package.php
-```
-
-This is useful if you've made changes to your plugin's name or version and need to sync these changes to the frontend configuration.
-
-### 4. Building for Production
-
-```bash
-# 1. Build frontend assets
+# Build frontend assets
 cd frontend
 npm run build
-
-# 2. Go back to root and create distribution
 cd ..
-./build/build.sh  # Creates a clean build in dist/
+
+# Create distribution
+./build/build.sh  # Outputs to dist/
 ```
 
 ### 4. Creating a Release
 
-1. Bump the version (see above)
-2. Push your changes and tags:
+1. Bump version using above commands
+2. Push changes and tags:
 
-    ```bash
-    git push && git push --tags
-    ```
+   ```bash
+   git push && git push --tags
+   ```
 
-3. GitHub Actions will automatically create a release with the built plugin
+3. GitHub Actions will create a release automatically
 
-### 5. Testing the Build
+### 5. Frontend Package Management
 
-You can test the built plugin by copying the contents of the `dist/` directory to your WordPress plugins directory.
+The `bin/update-frontend-package.php` script keeps frontend configuration in sync. It runs automatically during plugin initialization or manually via:
+
+```bash
+php bin/update-frontend-package.php
+```
 
 ## 🏗️ Project Structure
 
@@ -450,9 +392,7 @@ cd frontend
 npm run dev
 ```
 
-## 🔄 Development Workflow
-
-### Local Development
+## 🔄 Local Development Workflow
 
 1. **Start the development environment**:
 
