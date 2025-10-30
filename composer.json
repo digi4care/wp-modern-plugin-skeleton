@@ -67,7 +67,7 @@
       ]
     },
     "plugin-name": "WP Modern Plugin Skeleton",
-    "plugin-uri": "https://github.com/N3XT0R/wp-modern-plugin-skeleton",
+    "plugin-uri": "https://github.com/digi4care/wp-modern-plugin-skeleton",
     "plugin-description": "Modern WordPress plugin skeleton using hexagonal architecture",
     "text-domain": "wp-modern-plugin-skeleton",
     "tested-up-to": "6.8",
