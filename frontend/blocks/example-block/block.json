@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "wp-modern-plugin/example-block",
+  "version": "1.0.0",
+  "title": "Example Block",
+  "category": "widgets",
+  "icon": "smiley",
+  "description": "An example block for the WP Modern Plugin Skeleton",
+  "supports": {
+    "html": false
+  },
+  "textdomain": "wp-modern-plugin",
+  "editorScript": "file:./build/index.js",
+  "editorStyle": "file:./build/index.css",
+  "style": "file:./build/style-index.css"
+}

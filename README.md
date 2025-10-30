@@ -47,41 +47,42 @@ npm install
 
 1. **First, update `composer.json`**:
 
-   - Open `composer.json`
-   - Update these fields:
+    - Open `composer.json`
+    - Update these fields:
 
-     ```json
-     {
-       "name": "your-vendor/your-plugin-slug",
-       "description": "Your plugin description",
-       "authors": [
-         {
-           "name": "Your Name",
-           "email": "your.email@example.com"
-         }
-       ],
-       "extra": {
-         "plugin-name": "Your Plugin Name",
-         "plugin-uri": "https://your-plugin-url.com",
-         "text-domain": "your-plugin-slug"
-       }
-     }
-     ```
+        ```json
+        {
+            "name": "your-vendor/your-plugin-slug",
+            "description": "Your plugin description",
+            "authors": [
+                {
+                    "name": "Your Name",
+                    "email": "your.email@example.com"
+                }
+            ],
+            "extra": {
+                "plugin-name": "Your Plugin Name",
+                "plugin-uri": "https://your-plugin-url.com",
+                "text-domain": "your-plugin-slug"
+            }
+        }
+        ```
 
 2. **Run the initialization script**:
 
-   ```bash
-   # This will use the values from composer.json to set up everything
-   composer init-plugin
-   ```
+    ```bash
+    # This will use the values from composer.json to set up everything
+    composer init-plugin
+    ```
 
-   The script will automatically:
-   - Create your main plugin file with proper headers
-   - Set up the frontend package.json
-   - Configure the CI/CD workflow
-   - Generate all necessary configuration files
+    The script will automatically:
 
-   You only need to update `composer.json` - all other files will be generated automatically based on these settings.
+    - Create your main plugin file with proper headers
+    - Set up the frontend package.json
+    - Configure the CI/CD workflow
+    - Generate all necessary configuration files
+
+    You only need to update `composer.json` - all other files will be generated automatically based on these settings.
 
 ## 🧰 Available Commands
 
@@ -191,9 +192,9 @@ The `bin/update-frontend-package.php` script ensures your frontend's `package.js
 
 1. **Automatic Execution**: Runs automatically when you initialize a new plugin using `composer init-plugin`
 2. **Configuration Preservation**: Maintains critical frontend settings:
-   - Build scripts (`dev`, `build`, `preview`)
-   - Required dependencies (React, WordPress i18n)
-   - Development tooling (Vite, Tailwind CSS)
+    - Build scripts (`dev`, `build`, `preview`)
+    - Required dependencies (React, WordPress i18n)
+    - Development tooling (Vite, Tailwind CSS)
 
 #### Manual Execution
 
@@ -222,9 +223,9 @@ cd ..
 1. Bump the version (see above)
 2. Push your changes and tags:
 
-   ```bash
-   git push && git push --tags
-   ```
+    ```bash
+    git push && git push --tags
+    ```
 
 3. GitHub Actions will automatically create a release with the built plugin
 
@@ -234,22 +235,109 @@ You can test the built plugin by copying the contents of the `dist/` directory t
 
 ## 🏗️ Project Structure
 
-```tree
+````tree
 ├── bin/                  # Helper scripts
-├── build/               # Build scripts and assets
-├── frontend/            # Frontend assets (React, CSS, JS)
-│   ├── src/             # Frontend source files
-│   └── public/          # Compiled frontend assets
-├── src/                 # PHP source code
-│   ├── Adapter/         # WordPress integrations
-│   ├── Application/     # Application services
-│   ├── Domain/          # Business logic and entities
-│   ├── Infrastructure/  # External services and implementations
-│   └── Shared/          # Shared utilities
-├── tests/               # PHPUnit tests
-├── .github/workflows/   # CI/CD configuration
-├── composer.json        # PHP dependencies
-└── phpunit.xml         # PHPUnit configuration
+│   ├── generate-header.php  # Generates plugin header
+│   ├── init-plugin.php     # Initializes a new plugin
+│   └── update-frontend-package.php # Updates frontend package.json
+├── frontend/             # Frontend React application
+│   ├── blocks/           # Gutenberg blocks
+│   │   └── example-block/  # Example block
+│   │       ├── src/       # Block source files
+│   │       │   ├── edit.js  # Block editor component
+│   │       │   ├── save.js  # Block frontend component
+│   │       │   └── index.js # Block registration
+│   │       └── block.json  # Block configuration
+│   ├── components/       # React components
+│   │   └── SettingsPage.jsx  # Example component
+│   ├── translations/     # Translation files
+│   ├── App.jsx           # Main React component
+│   ├── main.jsx          # Application entry point
+│   ├── index.html        # HTML template
+│   ├── index.css         # Global styles
+│   └── vite.config.js    # Vite configuration
+
+## 🧱 Gutenberg Blocks
+
+This plugin includes a modern block development environment with the following features:
+- 🚀 Automatic block registration
+- ⚡ Lazy loading (only loads when Gutenberg is active)
+- 🔄 Hot module replacement in development
+- 🎨 Built-in support for React and modern JavaScript
+
+### Block Structure
+
+Each block should be placed in its own directory under `frontend/blocks/` with this structure:
+
+```text
+block-name/
+├── src/
+│   ├── edit.js    # Editor component
+│   ├── save.js    # Frontend component
+│   ├── index.js   # Block registration
+│   └── style.scss # Block styles
+└── block.json     # Block configuration
+````
+
+### Creating a New Block
+
+1. **Create a new directory** for your block in `frontend/blocks/`
+
+2. **Add a `block.json` file**:
+
+    ```json
+    {
+        "$schema": "https://schemas.wp.org/trunk/block.json",
+        "apiVersion": 3,
+        "name": "your-plugin/block-name",
+        "title": "Block Name",
+        "category": "widgets",
+        "icon": "smiley",
+        "editorScript": "file:./build/index.js"
+    }
+    ```
+
+3. **Create the block components**:
+
+    - `edit.js` - Controls the block's appearance in the editor
+    - `save.js` - Controls the block's output on the frontend
+    - `index.js` - Registers the block
+
+4. **The block will be automatically registered** when Gutenberg is active
+
+### Block Development
+
+```bash
+# Start development server with HMR
+cd frontend
+npm run dev
+
+# Build for production
+npm run build
+```
+
+### Best Practices
+
+1. **Keep blocks independent** - Each block should work on its own
+2. **Use WordPress components** - Leverage `@wordpress/components` when possible
+3. **Lazy load assets** - Only load what's needed for each block
+4. **Support i18n** - Use `@wordpress/i18n` for translatable strings
+
+### Example Block
+
+See `frontend/blocks/example-block/` for a complete example.
+The frontend is built using React with Vite. The main entry points are
+
+- `frontend/main.jsx` - Application entry point
+- `frontend/App.jsx` - Root React component
+- `frontend/components/` - Reusable React components
+- `frontend/translations/` - Translation files
+
+Run the development server with:
+
+```bash
+cd frontend
+npm run dev
 ```
 
 ## 🔄 Continuous Integration
@@ -268,10 +356,10 @@ This project includes GitHub Actions workflows that automatically:
 3. Commit your changes
 4. Create a git tag:
 
-   ```bash
-   git tag -a v1.0.0 -m "Initial release"
-   git push origin v1.0.0
-   ```
+    ```bash
+    git tag -a v1.0.0 -m "Initial release"
+    git push origin v1.0.0
+    ```
 
 5. GitHub Actions will automatically create a release with the built plugin
 
