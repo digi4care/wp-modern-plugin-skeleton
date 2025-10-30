@@ -16,6 +16,7 @@
 /readme.html
 /wp-*.php
 /xmlrpc.php
+wordpress/
 
 # Configuration
 wp-config.php
@@ -57,5 +58,5 @@ composer.lock
 /frontend/node_modules/
 .idea
 
-# WordPress core (only for testing/development)
-wordpress/
+# Backup files
+*.bak
