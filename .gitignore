@@ -60,3 +60,5 @@ composer.lock
 
 # Backup files
 *.bak
+combine_sources.py
+project.llm.txt
