@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress Coding Standards">
+    <description>Custom coding standard for WordPress development</description>
+
+    <!-- Check all files in these directories -->
+    <file>.</file>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/wordpress/*</exclude-pattern>
+    <exclude-pattern>*/tests/*</exclude-pattern>
+    <exclude-pattern>*/build/*</exclude-pattern>
+    <exclude-pattern>*/coverage/*</exclude-pattern>
+
+    <!-- Show progress -->
+    <arg value="sp"/>
+
+    <!-- Strip the filepaths down to the relevant bit -->
+    <arg name="basepath" value="./"/>
+
+    <!-- WordPress Coding Standards as the base -->
+    <rule ref="WordPress">
+        <!-- Exclude PHP version restrictions for now -->
+        <exclude name="PHPCompatibility" />
+        
+        <!-- Allow for namespaces -->
+        <exclude name="WordPress.NamingConventions.PrefixAllGlobals" />
+        <exclude name="WordPress.Files.FileName" />
+        
+        <!-- Allow for modern PHP syntax -->
+        <exclude name="Squiz.PHP.DisallowMultipleAssignments" />
+        <exclude name="Squiz.Commenting.FunctionComment" />
+        <exclude name="Squiz.Commenting.InlineComment" />
+    </rule>
+
+    <!-- Check for cross-version PHP compatibility -->
+    <rule ref="PHPCompatibilityWP">
+        <config name="testVersion" value="7.4-"/>
+    </rule>
+
+    <!-- Slevomat Coding Standard for additional rules -->
+    <rule ref="SlevomatCodingStandard">
+        <exclude name="SlevomatCodingStandard.TypeHints.DeclareStrictTypes" />
+        <exclude name="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly" />
+    </rule>
+
+    <!-- Custom rules -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="wpbakery-faq-manager" />
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Verify the text_domain is set to the desired text-domain -->
+    <rule ref="WordPress.WP.I18n.TextDomainMismatch">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="wpbakery-faq-manager" />
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Verify that a plugin/theme has a header docblock -->
+    <rule ref="WordPress.Files.FileName">
+        <properties>
+            <property name="strict_class_file_names" value="false" />
+        </properties>
+    </rule>
+</ruleset>

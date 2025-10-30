@@ -1,0 +1,14 @@
+parameters:
+    level: 8
+    paths:
+        - src/
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    checkMissingTypehints: true
+    checkAlwaysTrueCheckTypeFunctionCall: true
+    checkExplicitMixed: true
+    checkUninitializedProperties: true
+
+includes:
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - vendor/phpstan/phpstan-phpunit/rules.neon
