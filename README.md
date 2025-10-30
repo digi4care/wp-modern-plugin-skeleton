@@ -1,6 +1,36 @@
 # WordPress Modern Plugin Skeleton
 
-A professional starting point for building modern WordPress plugins with clean architecture, dependency injection, and modern tooling. This is a template repository - use it as a base for your own WordPress plugins.
+A professional starting point for building modern WordPress plugins with clean architecture, dependency injection, and modern tooling. This template provides a solid foundation for developing WordPress plugins with a React-based frontend and modern PHP backend.
+
+## ✨ Features
+
+### 🚀 WordPress Plugin Development
+
+- Modern WordPress plugin development with best practices
+- Clean integration with WordPress core and admin area
+- Plugin settings page with React-based UI
+- Secure WordPress coding standards compliance
+
+### 🏗️ Architecture & Development
+
+- Clean architecture with separation of concerns
+- Dependency injection for better testability
+- Modern PHP 8+ features and type safety
+- Composer for PHP dependency management
+
+### 🎨 Frontend & Blocks
+
+- Modern development with Vite and React
+- Gutenberg block development ready
+- Hot module replacement for development
+- WordPress components and hooks integration
+
+### 🛠️ Tooling & Workflow
+
+- Built-in testing and code quality tools
+- i18n support out of the box
+- Automated build and release process
+- Git hooks for code quality checks
 
 ## 🚀 Quick Start: Create a New Plugin
 
@@ -235,31 +265,57 @@ You can test the built plugin by copying the contents of the `dist/` directory t
 
 ## 🏗️ Project Structure
 
-````tree
-├── bin/                  # Helper scripts
-│   ├── generate-header.php  # Generates plugin header
-│   ├── init-plugin.php     # Initializes a new plugin
-│   └── update-frontend-package.php # Updates frontend package.json
-├── frontend/             # Frontend React application
-│   ├── blocks/           # Gutenberg blocks
-│   │   └── example-block/  # Example block
-│   │       ├── src/       # Block source files
-│   │       │   ├── edit.js  # Block editor component
-│   │       │   ├── save.js  # Block frontend component
-│   │       │   └── index.js # Block registration
-│   │       └── block.json  # Block configuration
-│   ├── components/       # React components
-│   │   └── SettingsPage.jsx  # Example component
-│   ├── translations/     # Translation files
-│   ├── App.jsx           # Main React component
-│   ├── main.jsx          # Application entry point
-│   ├── index.html        # HTML template
-│   ├── index.css         # Global styles
-│   └── vite.config.js    # Vite configuration
+```text
+├── bin/                      # Helper scripts
+│   ├── generate-header.php      # Generates plugin header
+│   ├── init-plugin.php         # Initializes a new plugin
+│   └── update-frontend-package.php # Syncs frontend package.json
+│
+├── build/                    # Build scripts
+│   └── build.sh              # Production build script
+│
+├── cache/                    # Cache directory
+│   └── container/            # Dependency injection container cache
+│
+├── frontend/                 # Frontend application
+│   ├── blocks/               # Gutenberg blocks
+│   │   └── example-block/    # Example block
+│   │       ├── src/          # Block source files
+│   │       │   ├── edit.js   # Block editor component
+│   │       │   ├── save.js   # Block frontend component
+│   │       │   └── index.js  # Block registration
+│   │       └── block.json    # Block configuration
+│   │
+│   ├── components/           # Reusable React components
+│   ├── translations/         # i18n translation files
+│   ├── App.jsx               # Root React component
+│   ├── main.jsx              # Application entry point
+│   ├── index.html            # HTML template
+│   ├── index.css             # Global styles
+│   └── vite.config.js        # Vite configuration
+│
+├── src/                      # PHP source code
+│   ├── Adapter/              # WordPress adapters
+│   ├── Application/          # Application layer
+│   ├── Blocks/               # PHP block handling
+│   ├── Domain/               # Domain logic
+│   └── Infrastructure/       # Infrastructure code
+│
+├── tests/                    # Test files
+│   ├── Unit/                 # Unit tests
+│   └── Integration/          # Integration tests
+│
+├── vendor/                   # Composer dependencies
+├── .gitignore               # Git ignore rules
+├── composer.json            # PHP dependencies
+├── package.json             # Frontend dependencies
+└── README.md                # This file
+```
 
 ## 🧱 Gutenberg Blocks
 
 This plugin includes a modern block development environment with the following features:
+
 - 🚀 Automatic block registration
 - ⚡ Lazy loading (only loads when Gutenberg is active)
 - 🔄 Hot module replacement in development
@@ -277,7 +333,7 @@ block-name/
 │   ├── index.js   # Block registration
 │   └── style.scss # Block styles
 └── block.json     # Block configuration
-````
+```
 
 ### Creating a New Block
 
@@ -325,8 +381,62 @@ npm run build
 
 ### Example Block
 
-See `frontend/blocks/example-block/` for a complete example.
-The frontend is built using React with Vite. The main entry points are
+See `frontend/blocks/example-block/` for a complete example. You can use this as a starting point for your own blocks.
+
+## 🎨 Frontend Development
+
+The frontend is built using React with Vite. The main entry points are:
+
+- `frontend/main.jsx` - Application entry point
+- `frontend/App.jsx` - Root React component
+- `frontend/components/` - Reusable React components
+- `frontend/translations/` - Translation files
+
+### Development Workflow
+
+1. **Start the development server**:
+
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+2. **Build for production**:
+
+   ```bash
+   npm run build
+   ```
+
+3. **Check for issues**:
+
+   ```bash
+   npm run lint    # Check code style
+   npm run typecheck  # Type checking
+   ```
+
+### Managing Frontend Dependencies
+
+- Add new dependencies using npm:
+
+  ```bash
+  cd frontend
+  npm install package-name
+  ```
+
+- Update dependencies:
+
+  ```bash
+  npm update
+  ```
+
+### Styling
+
+- Main styles are located in `frontend/index.css`
+- Block-specific styles should be placed in their respective block directories
+- Uses PostCSS with modern CSS features
+- Supports CSS Modules for component-scoped styles
+
+The frontend is built using React with Vite. The main entry points are:
 
 - `frontend/main.jsx` - Application entry point
 - `frontend/App.jsx` - Root React component
@@ -339,6 +449,72 @@ Run the development server with:
 cd frontend
 npm run dev
 ```
+
+## 🔄 Development Workflow
+
+### Local Development
+
+1. **Start the development environment**:
+
+   ```bash
+   # Install PHP dependencies
+   composer install
+   
+   # Install frontend dependencies
+   cd frontend
+   npm install
+   
+   # Start the development server
+   npm run dev
+   ```
+
+2. **Running Tests**:
+
+   ```bash
+   # Run PHPUnit tests
+   composer test
+   
+   # Run PHPStan (static analysis)
+   composer stan
+   
+   # Check code style
+   composer cs
+   ```
+
+### Building for Production
+
+1. **Build the frontend assets**:
+
+   ```bash
+   cd frontend
+   npm run build
+   ```
+
+2. **Create a production build**:
+
+   ```bash
+   # From the project root
+   ./build/build.sh
+   ```
+
+   This will create a production-ready build in the `dist/` directory.
+
+### Version Management
+
+Use Composer to manage versions:
+
+```bash
+# Bump patch version (0.0.1 → 0.0.2)
+composer version:patch
+
+# Bump minor version (0.1.0 → 0.2.0)
+composer version:minor
+
+# Bump major version (1.0.0 → 2.0.0)
+composer version:major
+```
+
+These commands will update the version in `composer.json`, update the plugin header, create a git commit, and tag the release.
 
 ## 🔄 Continuous Integration
 
