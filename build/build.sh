@@ -42,7 +42,21 @@ fi
 
 # Copy individual root files
 [ -f "composer.json" ] && cp composer.json "$PLUGIN_DIR/"
-[ -f "*.php" ] && cp *.php "$PLUGIN_DIR/" 2>/dev/null || true  # Ignore if no PHP files exist
+
+# Copy the main plugin file
+if [ -f "$MAIN_PLUGIN_FILE" ]; then
+    cp "$MAIN_PLUGIN_FILE" "$PLUGIN_DIR/"
+else
+    echo "❌ Error: Main plugin file '$MAIN_PLUGIN_FILE' not found!"
+    exit 1
+fi
+
+# Copy other PHP files (excluding the main plugin file we just copied)
+for file in *.php; do
+    if [ "$file" != "$MAIN_PLUGIN_FILE" ] && [ -f "$file" ]; then
+        cp "$file" "$PLUGIN_DIR/"
+    fi
+done
 
 # Copy README.md if it exists
 [ -f "README.md" ] && cp README.md "$PLUGIN_DIR/"
