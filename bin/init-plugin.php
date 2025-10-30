@@ -41,6 +41,10 @@ if (!copy($template, $pluginFile)) {
 // Now generate the header using the generate-header script
 require __DIR__ . '/generate-header.php';
 
+// Update frontend/package.json
+echo "🔄 Updating frontend package.json...\n";
+require __DIR__ . '/update-frontend-package.php';
+
 echo "Created plugin file $pluginFile\n";
 
 $workflowTemplate = __DIR__ . '/../.github/workflows/ci.template.yml';

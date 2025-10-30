@@ -185,7 +185,33 @@ These commands will:
 3. Create a git commit with the version bump
 4. Create a git tag for the new version
 
-### 3. Building for Production
+### 3. Frontend Package Management
+
+The `bin/update-frontend-package.php` script ensures your frontend's `package.json` stays in sync with your plugin's configuration. It automatically:
+
+- Updates the package name to match your plugin name
+- Syncs the version number with your plugin version
+- Preserves essential frontend dependencies and scripts
+
+#### How It Works
+
+1. **Automatic Execution**: Runs automatically when you initialize a new plugin using `composer init-plugin`
+2. **Configuration Preservation**: Maintains critical frontend settings:
+   - Build scripts (`dev`, `build`, `preview`)
+   - Required dependencies (React, WordPress i18n)
+   - Development tooling (Vite, Tailwind CSS)
+
+#### Manual Execution
+
+If you need to update the frontend package manually:
+
+```bash
+php bin/update-frontend-package.php
+```
+
+This is useful if you've made changes to your plugin's name or version and need to sync these changes to the frontend configuration.
+
+### 4. Building for Production
 
 ```bash
 # 1. Build frontend assets

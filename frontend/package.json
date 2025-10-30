@@ -1,22 +1,30 @@
 {
-  "name": "wp-skeleton-frontend",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@wordpress/i18n": "6.7.0",
-    "react": "18.3.0",
-    "react-dom": "18.3.0"
-  },
-  "devDependencies": {
-    "@babel/preset-react": "^7.28.5",
-    "@tailwindcss/vite": "^4.1.16",
-    "@vitejs/plugin-react": "^5.1.0",
-    "tailwindcss": "^4.1.16",
-    "vite": "^7.1.12"
-  }
+    "name": "wp-modern-plugin-skeleton-frontend",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Modern WordPress plugin skeleton using hexagonal architecture",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@wordpress/i18n": "6.7.0",
+        "react": "18.3.0",
+        "react-dom": "18.3.0"
+    },
+    "devDependencies": {
+        "@babel/preset-react": "^7.28.5",
+        "@tailwindcss/vite": "^4.1.16",
+        "@vitejs/plugin-react": "^5.1.0",
+        "tailwindcss": "^4.1.16",
+        "vite": "^7.1.12"
+    },
+    "author": {
+        "name": "Your Name",
+        "email": "your.email@example.com",
+        "url": "https://example.com"
+    },
+    "license": "MIT"
 }

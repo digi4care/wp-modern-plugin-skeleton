@@ -40,6 +40,7 @@
   "scripts": {
     "init-plugin": "php bin/init-plugin.php",
     "generate-header": "php bin/generate-header.php",
+    "update-frontend-package": "php bin/update-frontend-package.php",
     "test": "vendor/bin/phpunit --configuration phpunit.xml",
     "test:coverage": "phpunit --coverage-html coverage",
     "cs": "php -d memory_limit=512M ./vendor/bin/phpcs --standard=.phpcs.xml . || [ $? -eq 1 ]",
