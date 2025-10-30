@@ -51,6 +51,7 @@ wp-config.php
 composer.lock
 
 # Build artifacts
+/dist/
 /build/dist/
 .phpunit.result.cache
 /frontend/node_modules/
