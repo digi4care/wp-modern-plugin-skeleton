@@ -2,23 +2,26 @@
 /**
  * Plugin Name:       WP Modern Plugin Skeleton
  * Plugin URI:        https://github.com/digi4care/wp-modern-plugin-skeleton
- * Description:       Modern WordPress plugin skeleton using hexagonal architecture with example functionality
- * Version:           1.0.0
- * Author:            Your Name
+ * Description:       Modern WordPress plugin skeleton using hexagonal architecture
+ * Version:           0.1.0
+ * Author:            Your Name <your.email@example.com> (https://example.com)
  * Author URI:        https://example.com
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       wp-skeleton
+ * Text Domain:       wp-modern-plugin-skeleton
  * Domain Path:       /languages
  * Requires at least: 6.0
  * Requires PHP:      8.2
  * Tested up to:      6.8
+ * Stable tag:        0.1.0
  */
 
 declare(strict_types=1);
 
 use WP\Skeleton\Adapter\WordpressPlugin;
 use WP\Skeleton\Shared\Plugin\PluginContext;
+use WP\Skeleton\Infrastructure\DI\ContainerFactory;
+use WP\Skeleton\Shared\Exception\PluginException;
 
 // Prevent direct access
 defined('ABSPATH') || exit;
@@ -83,15 +86,21 @@ function wp_skeleton_init(): void {
             'wp-skeleton'
         );
 
-        // Set plugin context and initialize
-        WP\Skeleton\Infrastructure\DI\ContainerProvider::set_plugin_context($plugin_context);
+        // Create container using factory (no singleton)
+        $container_factory = new ContainerFactory();
+        $container = $container_factory->create($plugin_context);
         
-        // Initialize main plugin
-        WordpressPlugin::init(__FILE__);
+        // Initialize main plugin via dependency injection
+        /** @var WordpressPlugin $plugin */
+        $plugin = $container->get(WordpressPlugin::class);
+        $plugin->init(__FILE__);
 
-    } catch (Throwable $e) {
+    } catch (PluginException $e) {
         error_log('WP Modern Plugin Skeleton initialization failed: ' . $e->getMessage());
         wp_skeleton_display_error($e->getMessage());
+    } catch (Throwable $e) {
+        error_log('WP Modern Plugin Skeleton unexpected error: ' . $e->getMessage());
+        wp_skeleton_display_error(__('An unexpected error occurred during plugin initialization.', 'wp-skeleton'));
     }
 }
 
@@ -119,18 +128,32 @@ add_action('plugins_loaded', 'wp_skeleton_init');
 /**
  * Example functionality - Greeting Shortcode
  * Usage: [skeleton_greet name="John"]
+ * 
+ * @param array{name?: string, class?: string} $atts
+ * @param WP\Skeleton\Application\GreetingApplication|null $greetingApp For testing purposes
  */
-function wp_skeleton_greeting_shortcode($atts): string {
+function wp_skeleton_greeting_shortcode(array $atts, ?WP\Skeleton\Application\GreetingApplication $greetingApp = null): string {
     try {
         $atts = shortcode_atts([
             'name' => 'World',
             'class' => 'wp-skeleton-greeting'
         ], $atts, 'skeleton_greet');
 
-        $container = WP\Skeleton\Infrastructure\DI\ContainerProvider::get_container();
-        $greeting_app = $container->get(WP\Skeleton\Application\GreetingApplication::class);
+        // For testing, allow dependency injection
+        if ($greetingApp === null) {
+            // In production, create a new container instance
+            $plugin_context = new PluginContext(
+                __FILE__,
+                'wp-skeleton',
+                'https://github.com/digi4care/wp-modern-plugin-skeleton',
+                'wp-skeleton'
+            );
+            $container_factory = new ContainerFactory();
+            $container = $container_factory->create($plugin_context);
+            $greetingApp = $container->get(WP\Skeleton\Application\GreetingApplication::class);
+        }
         
-        $greeting = $greeting_app->greet(sanitize_text_field($atts['name']));
+        $greeting = $greetingApp->greet(sanitize_text_field($atts['name']));
         
         return sprintf(
             '<div class="%s">%s</div>',
@@ -148,44 +171,3 @@ function wp_skeleton_greeting_shortcode($atts): string {
     }
 }
 add_shortcode('skeleton_greet', 'wp_skeleton_greeting_shortcode');
-
-/**
- * Example functionality - Add admin menu item
- */
-function wp_skeleton_add_admin_menu(): void {
-    add_menu_page(
-        __('WP Skeleton', 'wp-skeleton'),
-        __('WP Skeleton', 'wp-skeleton'),
-        'manage_options',
-        'wp-skeleton',
-        'wp_skeleton_admin_page',
-        'dashicons-admin-generic',
-        20
-    );
-}
-add_action('admin_menu', 'wp_skeleton_add_admin_menu');
-
-/**
- * Admin page callback
- */
-function wp_skeleton_admin_page(): void {
-    ?>
-    <div class="wrap">
-        <h1><?php esc_html_e('WP Skeleton Plugin', 'wp-skeleton'); ?></h1>
-        <div class="card">
-            <h2><?php esc_html_e('Example Functionality', 'wp-skeleton'); ?></h2>
-            <p><?php esc_html_e('This plugin demonstrates a modern WordPress plugin architecture.', 'wp-skeleton'); ?></p>
-            
-            <h3><?php esc_html_e('Available Shortcodes:', 'wp-skeleton'); ?></h3>
-            <ul>
-                <li><code>[skeleton_greet name="Your Name"]</code> - <?php esc_html_e('Displays a personalized greeting', 'wp-skeleton'); ?></li>
-            </ul>
-            
-            <h3><?php esc_html_e('Example:', 'wp-skeleton'); ?></h3>
-            <div class="example-output">
-                <?php echo wp_skeleton_greeting_shortcode(['name' => 'WordPress User']); ?>
-            </div>
-        </div>
-    </div>
-    <?php
-}

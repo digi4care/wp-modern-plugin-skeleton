@@ -38,8 +38,8 @@ if (!copy($template, $pluginFile)) {
     exit(1);
 }
 
-// Now generate the header using the generate-header script
-require __DIR__ . '/generate-header.php';
+// VERWIJDER DEZE REGEL:
+// require __DIR__ . '/generate-header.php';
 
 // Update frontend/package.json
 echo "🔄 Updating frontend package.json...\n";
@@ -64,4 +64,3 @@ if (file_exists($workflowTemplate)) {
 } else {
     fwrite(STDERR, "Workflow template not found.\n");
 }
-
