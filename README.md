@@ -68,26 +68,20 @@ npm install
      }
      ```
 
-2. **Then initialize the plugin**:
+2. **Run the initialization script**:
 
    ```bash
-   # This will use the values from composer.json
+   # This will use the values from composer.json to set up everything
    composer init-plugin
    ```
 
-   The script will:
-
-   - Create your main plugin file (`your-plugin-slug.php`)
-   - Set up the plugin headers
+   The script will automatically:
+   - Create your main plugin file with proper headers
+   - Set up the frontend package.json
    - Configure the CI/CD workflow
+   - Generate all necessary configuration files
 
-### 3. Update Plugin Information
-
-Edit these files with your plugin's information:
-
-- `composer.json` - Update name, description, author, etc.
-- `plugin-skeleton.php.dist` - Main plugin file (will be copied to your plugin slug)
-- `.github/workflows/ci.yml` - CI/CD configuration
+   You only need to update `composer.json` - all other files will be generated automatically based on these settings.
 
 ## 🧰 Available Commands
 
