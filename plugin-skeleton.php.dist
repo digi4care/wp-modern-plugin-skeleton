@@ -28,7 +28,7 @@ ContainerProvider::setPluginContext(
     new PluginContext(
         __FILE__,
         'wp-modern-plugin-skeleton',
-        'https://github.com/N3XT0R/wp-modern-plugin-skeleton',
+        'https://github.com/digi4care/wp-modern-plugin-skeleton',
         'skeleton'
     )
 );
